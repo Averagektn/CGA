@@ -1,12 +1,13 @@
 ﻿using ObjVisualizer.Data;
+using System.Numerics;
 
 namespace ObjVisualizer.Parser
 {
     internal interface IObjReader
     {
-        IEnumerable<Vertex> Vertices { get; }
-        IEnumerable<VertexTexture> VertexTextures { get; }
-        IEnumerable<VertexNormal> VertexNormals { get; }
+        IEnumerable<Vector4> Vertices { get; }
+        IEnumerable<Vector3> VertexTextures { get; }
+        IEnumerable<Vector3> VertexNormals { get; }
         IEnumerable<Face> Faces { get; }
     }
 }

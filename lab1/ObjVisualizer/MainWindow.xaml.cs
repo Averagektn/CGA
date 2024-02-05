@@ -1,5 +1,4 @@
-﻿using ObjVisualizer.Parser;
-using System.Windows;
+﻿using System.Windows;
 
 namespace ObjVisualizer
 {

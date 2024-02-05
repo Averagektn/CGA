@@ -1,23 +1,24 @@
 ﻿using ObjVisualizer.Data;
 using System.Globalization;
 using System.IO;
+using System.Numerics;
 
 namespace ObjVisualizer.Parser
 {
     internal sealed class ObjReader : IObjReader
     {
-        public IEnumerable<Vertex> Vertices => _vertices;
-        public IEnumerable<VertexTexture> VertexTextures => _vertexTextures;
-        public IEnumerable<VertexNormal> VertexNormals => _vertexNormals;
+        public IEnumerable<Vector4> Vertices => _vertices;
+        public IEnumerable<Vector3> VertexTextures => _vertexTextures;
+        public IEnumerable<Vector3> VertexNormals => _vertexNormals;
         public IEnumerable<Face> Faces => _faces;
 
         private static readonly Dictionary<string, ObjReader> _readers = [];
 
         private readonly Dictionary<string, Action<string[]>> _actions;
 
-        private readonly List<Vertex> _vertices = [];
-        private readonly List<VertexTexture> _vertexTextures = [];
-        private readonly List<VertexNormal> _vertexNormals = [];
+        private readonly List<Vector4> _vertices = [];
+        private readonly List<Vector3> _vertexTextures = [];
+        private readonly List<Vector3> _vertexNormals = [];
         private readonly List<Face> _faces = [];
 
         private ObjReader(string filename)
@@ -63,17 +64,18 @@ namespace ObjVisualizer.Parser
             if (data.Length == 6)
             {
                 _vertices.Add(new(
-                    double.Parse(data[2], CultureInfo.InvariantCulture),
-                    double.Parse(data[3], CultureInfo.InvariantCulture),
-                    double.Parse(data[4], CultureInfo.InvariantCulture),
-                    double.Parse(data[5], CultureInfo.InvariantCulture)));
+                    float.Parse(data[2], CultureInfo.InvariantCulture),
+                    float.Parse(data[3], CultureInfo.InvariantCulture),
+                    float.Parse(data[4], CultureInfo.InvariantCulture),
+                    float.Parse(data[5], CultureInfo.InvariantCulture)));
             }
             else if (data.Length == 5)
             {
                 _vertices.Add(new(
-                    double.Parse(data[2], CultureInfo.InvariantCulture),
-                    double.Parse(data[3], CultureInfo.InvariantCulture),
-                    double.Parse(data[4], CultureInfo.InvariantCulture)));
+                    float.Parse(data[2], CultureInfo.InvariantCulture),
+                    float.Parse(data[3], CultureInfo.InvariantCulture),
+                    float.Parse(data[4], CultureInfo.InvariantCulture),
+                    1.0f));
             }
         }
 
@@ -81,36 +83,37 @@ namespace ObjVisualizer.Parser
         {
             if (data.Length == 2)
             {
-                _vertexTextures.Add(new(double.Parse(data[1], CultureInfo.InvariantCulture)));
+                _vertexTextures.Add(new(float.Parse(data[1], CultureInfo.InvariantCulture), 0, 0));
             }
             else if (data.Length == 3)
             {
                 _vertexTextures.Add(new(
-                    double.Parse(data[1], CultureInfo.InvariantCulture),
-                    double.Parse(data[2], CultureInfo.InvariantCulture)));
+                    float.Parse(data[1], CultureInfo.InvariantCulture),
+                    float.Parse(data[2], CultureInfo.InvariantCulture),
+                    0));
             }
             else if (data.Length == 4)
             {
                 _vertexTextures.Add(new(
-                    double.Parse(data[1], CultureInfo.InvariantCulture),
-                    double.Parse(data[2], CultureInfo.InvariantCulture),
-                    double.Parse(data[3], CultureInfo.InvariantCulture)));
+                    float.Parse(data[1], CultureInfo.InvariantCulture),
+                    float.Parse(data[2], CultureInfo.InvariantCulture),
+                    float.Parse(data[3], CultureInfo.InvariantCulture)));
             }
         }
 
         private void AddVertexNormal(string[] data)
         {
             _vertexNormals.Add(new(
-                double.Parse(data[1], CultureInfo.InvariantCulture),
-                double.Parse(data[2], CultureInfo.InvariantCulture),
-                double.Parse(data[3], CultureInfo.InvariantCulture)));
+                float.Parse(data[1], CultureInfo.InvariantCulture),
+                float.Parse(data[2], CultureInfo.InvariantCulture),
+                float.Parse(data[3], CultureInfo.InvariantCulture)));
         }
 
         private void AddFace(string[] data)
         {
-            List<Vertex> vs = [];
-            List<VertexNormal> vns = [];
-            List<VertexTexture> vts = [];
+            List<Vector4> vs = [];
+            List<Vector3> vns = [];
+            List<Vector3> vts = [];
 
             for (int i = 1; i < data.Length && data[i] != string.Empty; i++)
             {
