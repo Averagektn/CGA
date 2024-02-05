@@ -2,8 +2,8 @@
 {
     internal class VertexNormal(double i, double j, double k)
     {
-        public double I { get; set; } = i;
-        public double J { get; set; } = j;
-        public double K { get; set; } = k;
+        public readonly double I = i;
+        public readonly double J = j;
+        public readonly double K = k;
     }
 }

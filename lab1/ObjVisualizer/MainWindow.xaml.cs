@@ -11,8 +11,6 @@ namespace ObjVisualizer
         public MainWindow()
         {
             InitializeComponent();
-
-            var reader = ObjReader.GetObjReader("C:\\Users\\rylon\\Downloads\\Telegram Desktop\\Shrek.obj");
         }
     }
 }

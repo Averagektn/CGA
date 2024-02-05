@@ -4,7 +4,7 @@ using System.IO;
 
 namespace ObjVisualizer.Parser
 {
-    internal sealed class ObjReader
+    internal sealed class ObjReader : IObjReader
     {
         public IEnumerable<Vertex> Vertices => _vertices;
         public IEnumerable<VertexTexture> VertexTextures => _vertexTextures;
@@ -44,7 +44,7 @@ namespace ObjVisualizer.Parser
             }
         }
 
-        public static ObjReader GetObjReader(string filename)
+        public static IObjReader GetObjReader(string filename)
         {
             if (_readers.TryGetValue(filename, out var reader))
             {
@@ -86,14 +86,14 @@ namespace ObjVisualizer.Parser
             else if (data.Length == 3)
             {
                 _vertexTextures.Add(new(
-                    double.Parse(data[1], CultureInfo.InvariantCulture), 
+                    double.Parse(data[1], CultureInfo.InvariantCulture),
                     double.Parse(data[2], CultureInfo.InvariantCulture)));
             }
             else if (data.Length == 4)
             {
                 _vertexTextures.Add(new(
-                    double.Parse(data[1], CultureInfo.InvariantCulture), 
-                    double.Parse(data[2], CultureInfo.InvariantCulture), 
+                    double.Parse(data[1], CultureInfo.InvariantCulture),
+                    double.Parse(data[2], CultureInfo.InvariantCulture),
                     double.Parse(data[3], CultureInfo.InvariantCulture)));
             }
         }
@@ -101,8 +101,8 @@ namespace ObjVisualizer.Parser
         private void AddVertexNormal(string[] data)
         {
             _vertexNormals.Add(new(
-                double.Parse(data[1], CultureInfo.InvariantCulture), 
-                double.Parse(data[2], CultureInfo.InvariantCulture), 
+                double.Parse(data[1], CultureInfo.InvariantCulture),
+                double.Parse(data[2], CultureInfo.InvariantCulture),
                 double.Parse(data[3], CultureInfo.InvariantCulture)));
         }
 
