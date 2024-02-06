@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using ObjVisualizer.Data;
+using ObjVisualizer.Parser;
+using System.Windows;
 
 namespace ObjVisualizer
 {

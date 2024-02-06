@@ -171,9 +171,9 @@ namespace ObjVisualizer.Parser
                         vns.Add(_vertexNormals.Count);
                     }
                 }
-
-                _faces.Add(new(vs, vts, vns));
             }
+
+            _faces.Add(new(vs, vts, vns));
         }
     }
 }
