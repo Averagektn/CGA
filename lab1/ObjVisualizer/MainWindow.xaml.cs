@@ -1,6 +1,8 @@
 ﻿using ObjVisualizer.GraphicsComponents;
 using ObjVisualizer.Parser;
 using System.Numerics;
+using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -34,7 +36,7 @@ namespace ObjVisualizer
 
         private void InitializeWindowComponents()
         {
-            Application.Current.MainWindow.SizeChanged += Resize;
+            //Application.Current.MainWindow.SizeChanged += Resize;
             WindowHeight = (int)this.Height;
             WindowWidth = (int)this.Width;
             Image = new Image();
@@ -74,10 +76,10 @@ namespace ObjVisualizer
 
             Image.Width = (int)e.NewSize.Width;
             Image.Height = (int)e.NewSize.Height;
-
-            WriteableBitmap writableBitmap = new WriteableBitmap((int)e.NewSize.Width, (int)e.NewSize.Height, 96, 96, PixelFormats.Bgra32, null);
             WindowHeight = (int)e.NewSize.Height;
             WindowWidth = (int)e.NewSize.Width;
+            WriteableBitmap writableBitmap = new WriteableBitmap(WindowWidth, WindowHeight, 96, 96, PixelFormats.Bgr24, null);
+
 
         }
 
@@ -85,46 +87,62 @@ namespace ObjVisualizer
         async private void Frame()
         {
 
-            Camera camera = new Camera(new Vector3(0, 0, 1), new Vector3(0, 1, 0), new Vector3(0, 0, 0), (float)WindowWidth / (float)WindowHeight, 60.0f * ((float)Math.PI / 180.0f), 10.0f, 0.1f);
+            Camera camera = new Camera(new Vector3(0, 0, 1), new Vector3(0, 1, 0), new Vector3(0, -0.2f, 0), (float)WindowWidth / (float)WindowHeight, 70.0f * ((float)Math.PI / 180.0f), 10.0f, 0.1f);
             Vector4 Vertext1;
             Vector4 Vertext2;
             Vector4 Vertext3;
             var Vertex = Reader.Vertices.ToList();
+            Matrix4x4 ModelMatrix = Matrix4x4.Transpose(MatrixOperator.Scale(new Vector3(0.007f, 0.007f, 0.007f)) * MatrixOperator.RotateX(20f * ((float)Math.PI / 180.0f)) * MatrixOperator.Move(new Vector3(0, -40, 0)));
+            float angle = 0;
+
             while (true)
             {
                 PointsCount = 0;
-                await Task.Delay(1);
-                WriteableBitmap writableBitmap = new WriteableBitmap(WindowWidth+1, WindowHeight+1, 96, 96, PixelFormats.Bgr24, null);
-                Int32Rect rect = new Int32Rect(0, 0, WindowWidth+1, WindowHeight+1);
-                writableBitmap.Lock();
+                WriteableBitmap writableBitmap = new WriteableBitmap(WindowWidth, WindowHeight, 96, 96, PixelFormats.Bgr24, null);
+                Int32Rect rect = new Int32Rect(0, 0, WindowWidth, WindowHeight);
                 IntPtr buffer = writableBitmap.BackBuffer;
                 int stride = writableBitmap.BackBufferStride;
+                writableBitmap.Lock();
+                
                 //Matrix4x4 ModelMatrix = Matrix4x4.Transpose(MatrixOperator.GetModelMatrix());
-                Matrix4x4 ModelMatrix = Matrix4x4.Transpose(MatrixOperator.Scale(new Vector3(0.05f, 0.05f, 0.05f)));
                 Matrix4x4 ViewMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewMatrix(camera));
                 Matrix4x4 ProjectionMatrix = Matrix4x4.Transpose(MatrixOperator.GetProjectionMatrix(camera));
                 Matrix4x4 ViewPortMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewPortMatrix(WindowWidth, WindowHeight));
                 unsafe
                 {
                     byte* pixels = (byte*)buffer.ToPointer();
+                    for (int i = 0; i < Vertex.Count; i++)
+                    {
+                        Vertex[i] = Vector4.Transform(Vertex[i], ModelMatrix);
+    
+                    }
 
                     foreach (var face in Reader.Faces)
                     {
                         var Vertexes = face.VertexIds.ToList();
+
                         Vertext1 = Vector4.Transform(Vertex[Vertexes[0] - 1], ModelMatrix);
+                        Vertex[Vertexes[0] - 1] = Vertext1;
+                        Vertext1 = Vertex[Vertexes[0] - 1];
                         Vertext1 = Vector4.Transform(Vertext1, ViewMatrix);
                         Vertext1 = Vector4.Transform(Vertext1, ProjectionMatrix);
                         Vertext1 = Vector4.Divide(Vertext1, Vertext1.W);
                         Vertext1 = Vector4.Transform(Vertext1, ViewPortMatrix);
 
 
-                        Vertext2 = Vector4.Transform(Vertex[Vertexes[1] - 1], ModelMatrix);
+                        //Vertext2 = Vector4.Transform(Vertex[Vertexes[1] - 1], ModelMatrix);
+                        //Vertex[Vertexes[1] - 1] = Vertext2;
+                        Vertext2 = Vertex[Vertexes[1] - 1];
+
                         Vertext2 = Vector4.Transform(Vertext2, ViewMatrix);
                         Vertext2 = Vector4.Transform(Vertext2, ProjectionMatrix);
                         Vertext2 = Vector4.Divide(Vertext2, Vertext2.W);
                         Vertext2 = Vector4.Transform(Vertext2, ViewPortMatrix);
 
-                        Vertext3 = Vector4.Transform(Vertex[Vertexes[2] - 1], ModelMatrix);
+                        //Vertext3 = Vector4.Transform(Vertex[Vertexes[2] - 1], ModelMatrix);
+                        //Vertex[Vertexes[2] - 1] = Vertext3;
+                        Vertext3 = Vertex[Vertexes[2] - 1];
+
                         Vertext3 = Vector4.Transform(Vertext3, ViewMatrix);
                         Vertext3 = Vector4.Transform(Vertext3, ProjectionMatrix);
                         Vertext3 = Vector4.Divide(Vertext3, Vertext3.W);
@@ -132,26 +150,30 @@ namespace ObjVisualizer
                         if ((int)Vertext1.X > 0 && (int)Vertext2.X > 0 &&
                             (int)Vertext1.Y > 0 && (int)Vertext2.Y > 0 &&
                             (int)Vertext1.X < WindowWidth && (int)Vertext2.X < WindowWidth &&
-                            (int)Vertext1.Y < WindowWidth && (int)Vertext2.Y < WindowWidth)
+                            (int)Vertext1.Y < WindowHeight && (int)Vertext2.Y < WindowHeight)
                             DrawLine((int)Vertext1.X, (int)Vertext1.Y, (int)Vertext2.X, (int)Vertext2.Y, pixels, stride);
                         if ((int)Vertext2.X > 0 && (int)Vertext3.X > 0 &&
                             (int)Vertext2.Y > 0 && (int)Vertext3.Y > 0 &&
                             (int)Vertext2.X < WindowWidth && (int)Vertext3.X < WindowWidth &&
-                            (int)Vertext2.Y < WindowWidth && (int)Vertext3.Y < WindowWidth)
+                            (int)Vertext2.Y < WindowHeight && (int)Vertext3.Y < WindowHeight)
                             DrawLine((int)Vertext2.X, (int)Vertext2.Y, (int)Vertext3.X, (int)Vertext3.Y, pixels, stride);
                         if ((int)Vertext1.X > 0 && (int)Vertext3.X > 0 &&
                             (int)Vertext1.Y > 0 && (int)Vertext3.Y > 0 &&
                             (int)Vertext1.X < WindowWidth && (int)Vertext3.X < WindowWidth &&
-                            (int)Vertext1.Y < WindowWidth && (int)Vertext3.Y < WindowWidth)
+                            (int)Vertext1.Y < WindowHeight && (int)Vertext3.Y < WindowHeight)
                             DrawLine((int)Vertext3.X, (int)Vertext3.Y, (int)Vertext1.X, (int)Vertext1.Y, pixels, stride);
                     }
 
 
                 }
+                ModelMatrix = Matrix4x4.Transpose(MatrixOperator.RotateX(1f * ((float)Math.PI / 180.0f)));
+
                 writableBitmap.AddDirtyRect(rect);
                 writableBitmap.Unlock();
                 Image.Source = writableBitmap;
                 FrameCount++;
+                await Task.Delay(1);
+
             }
 
         }
@@ -178,32 +200,22 @@ namespace ObjVisualizer
             int error = dx / 2;
             int ystep = (y0 < y1) ? 1 : -1;
             int y = y0;
-            int val1;
-            int val2;
+            int var1, var2;
             for (int x = x0; x <= x1; x++)
             {
-
                 if (steep)
                 {
-                    val1 = x;
-                    val2 = y;
-                }
-                else
+                    var1 = x;
+                    var2 = y;
+                }else
                 {
-                    val1 = y;
-                    val2 = x;
+                    var1 = y;
+                    var2 = x;
                 }
-                byte* pixelPtr = data + val2 * stride + val1 * 3;
+                byte* pixelPtr = data + var1 * stride + var2* 3;
                 *(pixelPtr++) = 255;
                 *(pixelPtr++) = 255;
                 *(pixelPtr) = 255;
-
-
-
-
-
-                //PointsCount++;
-
 
                 error -= dy;
                 if (error < 0)
@@ -212,7 +224,6 @@ namespace ObjVisualizer
                     error += dx;
                 }
             }
-
         }
         private void Timer_Tick(object? sender, EventArgs e)
         {

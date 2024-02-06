@@ -15,9 +15,9 @@ namespace ObjVisualizer.GraphicsComponents
 
         public static Matrix4x4 Move(Vector3 transition)
         {
-            return new Matrix4x4(0, 0, 0, transition.X,
-                                0,0, 0, transition.Y,
-                                0, 0, 0, transition.Z,
+            return new Matrix4x4(1, 0, 0, transition.X,
+                                0,1, 0, transition.Y,
+                                0, 0, 1, transition.Z,
                                 0, 0, 0, 1.0f);
         }
         public static Matrix4x4 GetModelMatrix()
@@ -26,6 +26,28 @@ namespace ObjVisualizer.GraphicsComponents
                                  0, 1.0f, 0, 0,
                                  0, 0, 1.0f, 0,
                                  0, 0, 0, 1.0f);
+        }
+
+        public static Matrix4x4 RotateX(double angle)
+        {
+            return new Matrix4x4(1.0f, 0, 0, 0,
+                                0, (float)Math.Cos(angle), -(float)Math.Sin(angle), 0,
+                                0, (float)Math.Sin(angle), (float)Math.Cos(angle), 0,
+                                0, 0, 0, 1.0f);
+        }
+        public static Matrix4x4 RotateY(float angle)
+        {
+            return new Matrix4x4((float)Math.Cos(angle), 0, (float)Math.Sin(angle), 0,
+                               0, 1.0f, 0, 0,
+                               -(float)Math.Sin(angle),0 , (float)Math.Cos(angle), 0,
+                               0, 0, 0, 1.0f);
+        }
+        public static Matrix4x4 RotateZ(float angle)
+        {
+            return new Matrix4x4((float)Math.Cos(angle), -(float)Math.Sin(angle),0, 0,
+                                (float)Math.Sin(angle), 0, (float)Math.Cos(angle), 0,
+                               0, 1.0f, 0, 0, 
+                               0, 0, 0, 1.0f);
         }
         public static Matrix4x4 GetViewMatrix(Camera camera)
         {
