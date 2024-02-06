@@ -155,7 +155,7 @@ namespace ObjVisualizer.Parser
                         }
                         else
                         {
-                            vns.Add(_vertexNormals.Count - 1);
+                            vns.Add(_vertexNormals.Count);
                         }
                     }
                 }
