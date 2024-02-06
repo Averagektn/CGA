@@ -2,10 +2,10 @@
 
 namespace ObjVisualizer.Data
 {
-    internal class Face(IEnumerable<Vector4> vertices, IEnumerable<Vector3> textures, IEnumerable<Vector3> normals)
+    internal class Face(IEnumerable<int> vertices, IEnumerable<int> textures, IEnumerable<int> normals)
     {
-        public readonly IEnumerable<Vector4> Vertices = vertices;
-        public readonly IEnumerable<Vector3> Normals = normals;
-        public readonly IEnumerable<Vector3> Textures = textures;
+        public readonly IEnumerable<int> VertexIds = vertices;
+        public readonly IEnumerable<int> TextureIds = textures;
+        public readonly IEnumerable<int> NormalIds = normals;
     }
 }

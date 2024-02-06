@@ -111,9 +111,9 @@ namespace ObjVisualizer.Parser
 
         private void AddFace(string[] data)
         {
-            List<Vector4> vs = [];
-            List<Vector3> vns = [];
-            List<Vector3> vts = [];
+            List<int> vs = [];
+            List<int> vns = [];
+            List<int> vts = [];
 
             for (int i = 1; i < data.Length && data[i] != string.Empty; i++)
             {
@@ -122,11 +122,11 @@ namespace ObjVisualizer.Parser
                 int vId = int.Parse(elem[0]);
                 if (vId != -1)
                 {
-                    vs.Add(_vertices[vId - 1]);
+                    vs.Add(vId);
                 }
                 else
                 {
-                    vs.Add(_vertices[^1]);
+                    vs.Add(_vertices.Count);
                 }
 
                 int vtId;
@@ -139,11 +139,11 @@ namespace ObjVisualizer.Parser
                         vtId = int.Parse(elem[1]);
                         if (vtId != -1)
                         {
-                            vts.Add(_vertexTextures[vtId - 1]);
+                            vts.Add(vtId);
                         }
                         else
                         {
-                            vts.Add(_vertexTextures[^1]);
+                            vts.Add(_vertexTextures.Count);
                         }
                     }
                     else
@@ -151,11 +151,11 @@ namespace ObjVisualizer.Parser
                         vnId = int.Parse(elem[2]);
                         if (vnId != -1)
                         {
-                            vns.Add(_vertexNormals[vnId - 1]);
+                            vns.Add(vnId);
                         }
                         else
                         {
-                            vns.Add(_vertexNormals[^1]);
+                            vns.Add(_vertexNormals.Count - 1);
                         }
                     }
                 }
@@ -164,11 +164,11 @@ namespace ObjVisualizer.Parser
                     vnId = int.Parse(elem[2]);
                     if (vnId != -1)
                     {
-                        vns.Add(_vertexNormals[vnId - 1]);
+                        vns.Add(vnId);
                     }
                     else
                     {
-                        vns.Add(_vertexNormals[^1]);
+                        vns.Add(_vertexNormals.Count);
                     }
                 }
 
