@@ -61,52 +61,59 @@ namespace ObjVisualizer.Parser
 
         private void AddVertex(string[] data)
         {
-            if (data.Length == 6)
+            var coords = data[1..].Where(d => d != string.Empty).ToArray();
+
+            if (coords.Length == 4)
             {
                 _vertices.Add(new(
-                    float.Parse(data[2], CultureInfo.InvariantCulture),
-                    float.Parse(data[3], CultureInfo.InvariantCulture),
-                    float.Parse(data[4], CultureInfo.InvariantCulture),
-                    float.Parse(data[5], CultureInfo.InvariantCulture)));
+                    float.Parse(coords[0], CultureInfo.InvariantCulture),
+                    float.Parse(coords[1], CultureInfo.InvariantCulture),
+                    float.Parse(coords[2], CultureInfo.InvariantCulture),
+                    float.Parse(coords[3], CultureInfo.InvariantCulture)));
             }
-            else if (data.Length == 5)
+            
+            if (coords.Length == 3)
             {
                 _vertices.Add(new(
-                    float.Parse(data[2], CultureInfo.InvariantCulture),
-                    float.Parse(data[3], CultureInfo.InvariantCulture),
-                    float.Parse(data[4], CultureInfo.InvariantCulture),
+                    float.Parse(coords[0], CultureInfo.InvariantCulture),
+                    float.Parse(coords[1], CultureInfo.InvariantCulture),
+                    float.Parse(coords[2], CultureInfo.InvariantCulture),
                     1.0f));
             }
         }
 
         private void AddVertexTexture(string[] data)
         {
-            if (data.Length == 2)
+            var coords = data[1..].Where(d => d != string.Empty).ToArray();
+
+            if (coords.Length == 1)
             {
-                _vertexTextures.Add(new(float.Parse(data[1], CultureInfo.InvariantCulture), 0, 0));
+                _vertexTextures.Add(new(float.Parse(coords[0], CultureInfo.InvariantCulture), 0, 0));
             }
-            else if (data.Length == 3)
+            if (coords.Length == 2)
             {
                 _vertexTextures.Add(new(
-                    float.Parse(data[1], CultureInfo.InvariantCulture),
-                    float.Parse(data[2], CultureInfo.InvariantCulture),
+                    float.Parse(coords[0], CultureInfo.InvariantCulture),
+                    float.Parse(coords[1], CultureInfo.InvariantCulture),
                     0));
             }
-            else if (data.Length == 4)
+            if (coords.Length == 3)
             {
                 _vertexTextures.Add(new(
-                    float.Parse(data[1], CultureInfo.InvariantCulture),
-                    float.Parse(data[2], CultureInfo.InvariantCulture),
-                    float.Parse(data[3], CultureInfo.InvariantCulture)));
+                    float.Parse(coords[0], CultureInfo.InvariantCulture),
+                    float.Parse(coords[1], CultureInfo.InvariantCulture),
+                    float.Parse(coords[2], CultureInfo.InvariantCulture)));
             }
         }
 
         private void AddVertexNormal(string[] data)
         {
+            var coords = data[1..].Where(d => d != string.Empty).ToArray();
+
             _vertexNormals.Add(new(
-                float.Parse(data[1], CultureInfo.InvariantCulture),
-                float.Parse(data[2], CultureInfo.InvariantCulture),
-                float.Parse(data[3], CultureInfo.InvariantCulture)));
+                float.Parse(coords[0], CultureInfo.InvariantCulture),
+                float.Parse(coords[1], CultureInfo.InvariantCulture),
+                float.Parse(coords[2], CultureInfo.InvariantCulture)));
         }
 
         private void AddFace(string[] data)
@@ -115,9 +122,11 @@ namespace ObjVisualizer.Parser
             List<int> vns = [];
             List<int> vts = [];
 
-            for (int i = 1; i < data.Length && data[i] != string.Empty; i++)
+            var coords = data[1..].Where(d => d != string.Empty).ToArray();
+
+            for (int i = 0; i < coords.Length; i++)
             {
-                var elem = data[i].Split('/');
+                var elem = coords[i].Split('/');
 
                 int vId = int.Parse(elem[0]);
                 if (vId != -1)
@@ -137,6 +146,7 @@ namespace ObjVisualizer.Parser
                     if (elem[1] != string.Empty)
                     {
                         vtId = int.Parse(elem[1]);
+
                         if (vtId != -1)
                         {
                             vts.Add(vtId);
@@ -149,6 +159,7 @@ namespace ObjVisualizer.Parser
                     else
                     {
                         vnId = int.Parse(elem[2]);
+
                         if (vnId != -1)
                         {
                             vns.Add(vnId);
@@ -162,6 +173,7 @@ namespace ObjVisualizer.Parser
                 if (elem.Length > 2)
                 {
                     vnId = int.Parse(elem[2]);
+
                     if (vnId != -1)
                     {
                         vns.Add(vnId);
