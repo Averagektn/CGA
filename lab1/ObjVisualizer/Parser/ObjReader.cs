@@ -71,7 +71,7 @@ namespace ObjVisualizer.Parser
                     float.Parse(coords[2], CultureInfo.InvariantCulture),
                     float.Parse(coords[3], CultureInfo.InvariantCulture)));
             }
-            
+
             if (coords.Length == 3)
             {
                 _vertices.Add(new(

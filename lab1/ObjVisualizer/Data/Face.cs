@@ -1,6 +1,4 @@
-﻿using System.Numerics;
-
-namespace ObjVisualizer.Data
+﻿namespace ObjVisualizer.Data
 {
     internal class Face(IEnumerable<int> vertices, IEnumerable<int> textures, IEnumerable<int> normals)
     {

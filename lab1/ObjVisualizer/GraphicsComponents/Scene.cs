@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 
 namespace ObjVisualizer.GraphicsComponents
 {
@@ -20,7 +15,7 @@ namespace ObjVisualizer.GraphicsComponents
         private Matrix4x4 ScaleMatrix;
         private Matrix4x4 MoveMatrix;
 
-        private Scene() 
+        private Scene()
         {
             ModelMatrix = Matrix4x4.Identity;
             ViewMatrix = Matrix4x4.Identity;
@@ -29,11 +24,11 @@ namespace ObjVisualizer.GraphicsComponents
             RotateMatrix = Matrix4x4.Identity;
             ScaleMatrix = Matrix4x4.Identity;
             MoveMatrix = Matrix4x4.Identity;
-            camera = new Camera(Vector3.Zero, Vector3.Zero, Vector3.Zero, 0,0,0,0);
+            camera = new Camera(Vector3.Zero, Vector3.Zero, Vector3.Zero, 0, 0, 0, 0);
             ChangeStatus = true;
         }
 
-        public static Scene GetScene() 
+        public static Scene GetScene()
         {
             if (instance == null)
                 instance = new Scene();
@@ -58,20 +53,27 @@ namespace ObjVisualizer.GraphicsComponents
 
         public void UpdateModelMatrix()
         {
-            ModelMatrix = Matrix4x4.Transpose(ScaleMatrix * RotateMatrix * MoveMatrix);
+            ModelMatrix = ScaleMatrix * RotateMatrix * MoveMatrix;
         }
 
-        public void UpdateRotateMatrix(float angleX, float angleY, float angleZ)
+        public void ResetTransformMatrixes()
         {
-            RotateMatrix = Matrix4x4.Transpose(MatrixOperator.RotateX(angleX * Math.PI / 180.0) * MatrixOperator.RotateY(angleY * Math.PI / 180.0) * MatrixOperator.RotateZ(angleZ * Math.PI / 180.0));
+            RotateMatrix = Matrix4x4.Identity;
+            MoveMatrix = Matrix4x4.Identity;
+            ScaleMatrix = Matrix4x4.Identity;
+        }
+
+        public void UpdateRotateMatrix(Vector3 rotation)
+        {
+            //RotateMatrix = MatrixOperator.RotateX(angleX * Math.PI / 180.0) * MatrixOperator.RotateY(angleY * Math.PI / 180.0) * MatrixOperator.RotateZ(angleZ * Math.PI / 180.0);
+            RotateMatrix = MatrixOperator.RotateX(rotation.X * Math.PI / 180.0)*MatrixOperator.RotateY(rotation.Y * Math.PI / 180.0);
             UpdateModelMatrix();
         }
 
         public void UpdateScaleMatrix(float deltaScale)
         {
-            ScaleMatrix = Matrix4x4.Transpose(MatrixOperator.Scale(new Vector3(1+deltaScale, 1 + deltaScale, 1 + deltaScale)));
+            ScaleMatrix = MatrixOperator.Scale(new Vector3(1 + deltaScale, 1 + deltaScale, 1 + deltaScale));
             UpdateModelMatrix();
-
         }
 
     }
