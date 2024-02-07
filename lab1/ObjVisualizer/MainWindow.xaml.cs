@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
@@ -24,9 +25,11 @@ namespace ObjVisualizer
         private int FrameCount;
         private long PointsCount;
         private IObjReader Reader;
+
+        private Scene MainScene;
         public MainWindow()
         {
-            Reader = ObjReader.GetObjReader("C:\\Users\\dimon\\OneDrive\\Рабочий стол\\Study\\Универ\\Курс 3\\Семестр 6\\АКГ\\Shrek.obj");
+            Reader = ObjReader.GetObjReader("Objects\\Shrek.obj");
 
             InitializeComponent();
             InitializeWindowComponents();
@@ -36,12 +39,14 @@ namespace ObjVisualizer
 
         private void InitializeWindowComponents()
         {
-            //Application.Current.MainWindow.SizeChanged += Resize;
+
+            Application.Current.MainWindow.SizeChanged += Resize;
+            PreviewMouseWheel += MainWindow_PreviewMouseWheel;
+            MouseMove += MainWindow_MouseMove;
+            MouseLeftButtonDownEvent +=
             WindowHeight = (int)this.Height;
             WindowWidth = (int)this.Width;
-            Image = new Image();
-            Image.Width = this.Width;
-            Image.Height = this.Height;
+
 
             timer = new DispatcherTimer();
             timer.Interval = TimeSpan.FromSeconds(1);
@@ -49,6 +54,9 @@ namespace ObjVisualizer
 
             timer.Start();
             var grid = new Grid();
+            Image = new Image();
+            Image.Width = this.Width;
+            Image.Height = this.Height;
             Image.Stretch = Stretch.Fill;
 
             textBlock = new TextBlock();
@@ -69,8 +77,38 @@ namespace ObjVisualizer
             Grid.SetZIndex(textBlock, 1);
 
             this.Content = grid;
+
+            MainScene = Scene.GetScene();
+
+            MainScene.camera = new Camera(new Vector3(0, 0, 1), new Vector3(0, 1, 0), new Vector3(0, -0.2f, 0), (float)WindowWidth / (float)WindowHeight, 70.0f * ((float)Math.PI / 180.0f), 10.0f, 0.1f);
+            MainScene.ModelMatrix = Matrix4x4.Transpose(MatrixOperator.Scale(new Vector3(0.01f, 0.01f, 0.01f)) * MatrixOperator.RotateY(-20f * ((float)Math.PI / 180.0f))* MatrixOperator.RotateX(20f * ((float)Math.PI / 180.0f)) * MatrixOperator.Move(new Vector3(0, -50, 0)));
+            MainScene.ViewMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewMatrix(MainScene.camera));
+            MainScene.ProjectionMatrix = Matrix4x4.Transpose(MatrixOperator.GetProjectionMatrix(MainScene.camera));
+            MainScene.ViewPortMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewPortMatrix(WindowWidth, WindowHeight));
         }
 
+        private void MainWindow_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        { 
+            int scrollDelta = e.Delta;
+
+            if (scrollDelta > 0)
+            {
+                MainScene.UpdateScaleMatrix(0.2f);
+            }
+            else if (scrollDelta < 0)
+            {
+                MainScene.UpdateScaleMatrix(-0.2f);
+            }
+            MainScene.ChangeStatus = true;
+            e.Handled = true;
+        }
+        private void MainWindow_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed)
+            { 
+                Point currentPosition = e.GetPosition(this);
+            }
+        }
         private void Resize(object sender, SizeChangedEventArgs e)
         {
 
@@ -79,21 +117,19 @@ namespace ObjVisualizer
             WindowHeight = (int)e.NewSize.Height;
             WindowWidth = (int)e.NewSize.Width;
             WriteableBitmap writableBitmap = new WriteableBitmap(WindowWidth, WindowHeight, 96, 96, PixelFormats.Bgr24, null);
-
-
+            MainScene.SceneResize(WindowWidth, WindowHeight);
         }
 
 
         async private void Frame()
         {
 
-            Camera camera = new Camera(new Vector3(0, 0, 1), new Vector3(0, 1, 0), new Vector3(0, -0.2f, 0), (float)WindowWidth / (float)WindowHeight, 70.0f * ((float)Math.PI / 180.0f), 10.0f, 0.1f);
             Vector4 Vertext1;
             Vector4 Vertext2;
             Vector4 Vertext3;
+            Vector4 TempVertexI;
+            Vector4 TempVertexJ;
             var Vertex = Reader.Vertices.ToList();
-            Matrix4x4 ModelMatrix = Matrix4x4.Transpose(MatrixOperator.Scale(new Vector3(0.007f, 0.007f, 0.007f)) * MatrixOperator.RotateX(20f * ((float)Math.PI / 180.0f)) * MatrixOperator.Move(new Vector3(0, -40, 0)));
-            float angle = 0;
 
             while (true)
             {
@@ -103,73 +139,58 @@ namespace ObjVisualizer
                 IntPtr buffer = writableBitmap.BackBuffer;
                 int stride = writableBitmap.BackBufferStride;
                 writableBitmap.Lock();
-                
-                //Matrix4x4 ModelMatrix = Matrix4x4.Transpose(MatrixOperator.GetModelMatrix());
-                Matrix4x4 ViewMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewMatrix(camera));
-                Matrix4x4 ProjectionMatrix = Matrix4x4.Transpose(MatrixOperator.GetProjectionMatrix(camera));
-                Matrix4x4 ViewPortMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewPortMatrix(WindowWidth, WindowHeight));
                 unsafe
                 {
                     byte* pixels = (byte*)buffer.ToPointer();
-                    for (int i = 0; i < Vertex.Count; i++)
+                    if (MainScene.ChangeStatus)
                     {
-                        Vertex[i] = Vector4.Transform(Vertex[i], ModelMatrix);
-    
+                        for (int i = 0; i < Vertex.Count; i++)
+                        {
+                            Vertex[i] = Vector4.Transform(Vertex[i], MainScene.ModelMatrix);
+
+                        }
                     }
 
                     foreach (var face in Reader.Faces)
                     {
+
                         var Vertexes = face.VertexIds.ToList();
+                        TempVertexI = MainScene.GetTransformedVertex(Vertex[Vertexes[0] - 1]);
+                        TempVertexJ = MainScene.GetTransformedVertex(Vertex[Vertexes.Last() - 1]) ;
+                        if ((int)TempVertexI.X > 0 && (int)TempVertexJ.X > 0 &&
+                                    (int)TempVertexI.Y > 0 && (int)TempVertexJ.Y > 0 &&
+                                    (int)TempVertexI.X < WindowWidth && (int)TempVertexJ.X < WindowWidth &&
+                                    (int)TempVertexI.Y < WindowHeight && (int)TempVertexJ.Y < WindowHeight)
+                                    DrawLine((int)TempVertexI.X, (int)TempVertexI.Y, (int)TempVertexJ.X, (int)TempVertexJ.Y, pixels, stride);
+                        for (int i = 0; i < Vertexes.Count - 1; i++)
+                        {
+                            TempVertexI = MainScene.GetTransformedVertex(Vertex[Vertexes[i] - 1]);
 
-                        Vertext1 = Vector4.Transform(Vertex[Vertexes[0] - 1], ModelMatrix);
-                        Vertex[Vertexes[0] - 1] = Vertext1;
-                        Vertext1 = Vertex[Vertexes[0] - 1];
-                        Vertext1 = Vector4.Transform(Vertext1, ViewMatrix);
-                        Vertext1 = Vector4.Transform(Vertext1, ProjectionMatrix);
-                        Vertext1 = Vector4.Divide(Vertext1, Vertext1.W);
-                        Vertext1 = Vector4.Transform(Vertext1, ViewPortMatrix);
+                            for (int j = i + 1; j < Vertexes.Count; j++)
+                            {
 
+                                TempVertexJ = MainScene.GetTransformedVertex(Vertex[Vertexes[j] - 1]);
+                                
+                                if ((int)TempVertexI.X > 0 && (int)TempVertexJ.X > 0 &&
+                                    (int)TempVertexI.Y > 0 && (int)TempVertexJ.Y > 0 &&
+                                    (int)TempVertexI.X < WindowWidth && (int)TempVertexJ.X < WindowWidth &&
+                                    (int)TempVertexI.Y < WindowHeight && (int)TempVertexJ.Y < WindowHeight)
+                                    DrawLine((int)TempVertexI.X, (int)TempVertexI.Y, (int)TempVertexJ.X, (int)TempVertexJ.Y, pixels, stride);
+                            }
+                        }
 
-                        //Vertext2 = Vector4.Transform(Vertex[Vertexes[1] - 1], ModelMatrix);
-                        //Vertex[Vertexes[1] - 1] = Vertext2;
-                        Vertext2 = Vertex[Vertexes[1] - 1];
+                        
 
-                        Vertext2 = Vector4.Transform(Vertext2, ViewMatrix);
-                        Vertext2 = Vector4.Transform(Vertext2, ProjectionMatrix);
-                        Vertext2 = Vector4.Divide(Vertext2, Vertext2.W);
-                        Vertext2 = Vector4.Transform(Vertext2, ViewPortMatrix);
-
-                        //Vertext3 = Vector4.Transform(Vertex[Vertexes[2] - 1], ModelMatrix);
-                        //Vertex[Vertexes[2] - 1] = Vertext3;
-                        Vertext3 = Vertex[Vertexes[2] - 1];
-
-                        Vertext3 = Vector4.Transform(Vertext3, ViewMatrix);
-                        Vertext3 = Vector4.Transform(Vertext3, ProjectionMatrix);
-                        Vertext3 = Vector4.Divide(Vertext3, Vertext3.W);
-                        Vertext3 = Vector4.Transform(Vertext3, ViewPortMatrix);
-                        if ((int)Vertext1.X > 0 && (int)Vertext2.X > 0 &&
-                            (int)Vertext1.Y > 0 && (int)Vertext2.Y > 0 &&
-                            (int)Vertext1.X < WindowWidth && (int)Vertext2.X < WindowWidth &&
-                            (int)Vertext1.Y < WindowHeight && (int)Vertext2.Y < WindowHeight)
-                            DrawLine((int)Vertext1.X, (int)Vertext1.Y, (int)Vertext2.X, (int)Vertext2.Y, pixels, stride);
-                        if ((int)Vertext2.X > 0 && (int)Vertext3.X > 0 &&
-                            (int)Vertext2.Y > 0 && (int)Vertext3.Y > 0 &&
-                            (int)Vertext2.X < WindowWidth && (int)Vertext3.X < WindowWidth &&
-                            (int)Vertext2.Y < WindowHeight && (int)Vertext3.Y < WindowHeight)
-                            DrawLine((int)Vertext2.X, (int)Vertext2.Y, (int)Vertext3.X, (int)Vertext3.Y, pixels, stride);
-                        if ((int)Vertext1.X > 0 && (int)Vertext3.X > 0 &&
-                            (int)Vertext1.Y > 0 && (int)Vertext3.Y > 0 &&
-                            (int)Vertext1.X < WindowWidth && (int)Vertext3.X < WindowWidth &&
-                            (int)Vertext1.Y < WindowHeight && (int)Vertext3.Y < WindowHeight)
-                            DrawLine((int)Vertext3.X, (int)Vertext3.Y, (int)Vertext1.X, (int)Vertext1.Y, pixels, stride);
                     }
 
 
                 }
-                ModelMatrix = Matrix4x4.Transpose(MatrixOperator.RotateX(1f * ((float)Math.PI / 180.0f)));
+                //MainScene.ModelMatrix = Matrix4x4.Transpose(MatrixOperator.RotateX(1f * ((float)Math.PI / 180.0f)));
 
                 writableBitmap.AddDirtyRect(rect);
                 writableBitmap.Unlock();
+                MainScene.ModelMatrix = Matrix4x4.Transpose(MatrixOperator.GetModelMatrix());
+                MainScene.ChangeStatus = false ;
                 Image.Source = writableBitmap;
                 FrameCount++;
                 await Task.Delay(1);
@@ -207,12 +228,13 @@ namespace ObjVisualizer
                 {
                     var1 = x;
                     var2 = y;
-                }else
+                }
+                else
                 {
                     var1 = y;
                     var2 = x;
                 }
-                byte* pixelPtr = data + var1 * stride + var2* 3;
+                byte* pixelPtr = data + var1 * stride + var2 * 3;
                 *(pixelPtr++) = 255;
                 *(pixelPtr++) = 255;
                 *(pixelPtr) = 255;

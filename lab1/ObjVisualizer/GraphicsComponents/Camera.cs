@@ -11,5 +11,10 @@ namespace ObjVisualizer.GraphicsComponents
         public float FOV { get; set; } = fov;
         public float ZFar { get; set; } = zFar;
         public float ZNear { get; set; } = zNear;
+
+        public void ChangeCameraAspect(int Width, int Height)
+        {
+            Aspect = (float)Width / (float)Height;
+        }
     }
 }

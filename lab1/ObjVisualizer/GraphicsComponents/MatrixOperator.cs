@@ -35,14 +35,14 @@ namespace ObjVisualizer.GraphicsComponents
                                 0, (float)Math.Sin(angle), (float)Math.Cos(angle), 0,
                                 0, 0, 0, 1.0f);
         }
-        public static Matrix4x4 RotateY(float angle)
+        public static Matrix4x4 RotateY(double angle)
         {
             return new Matrix4x4((float)Math.Cos(angle), 0, (float)Math.Sin(angle), 0,
                                0, 1.0f, 0, 0,
                                -(float)Math.Sin(angle),0 , (float)Math.Cos(angle), 0,
                                0, 0, 0, 1.0f);
         }
-        public static Matrix4x4 RotateZ(float angle)
+        public static Matrix4x4 RotateZ(double angle)
         {
             return new Matrix4x4((float)Math.Cos(angle), -(float)Math.Sin(angle),0, 0,
                                 (float)Math.Sin(angle), 0, (float)Math.Cos(angle), 0,
