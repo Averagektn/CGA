@@ -44,6 +44,7 @@ namespace ObjVisualizer
             MouseMove += MainWindow_MouseMove;
             MouseLeftButtonDown += MainWindow_MouseLeftButtonDown;
             MouseLeftButtonUp += MainWindow_MouseLeftButtonUp;
+            PreviewKeyDown += MainWindow_PreviewKeyDown;
             WindowHeight = (int)this.Height;
             WindowWidth = (int)this.Width;
 
@@ -81,7 +82,7 @@ namespace ObjVisualizer
             MainScene = Scene.GetScene();
 
             MainScene.camera = new Camera(new Vector3(0, 0, 1), new Vector3(0, 1, 0), new Vector3(0, -0.2f, 0), (float)WindowWidth / (float)WindowHeight, 70.0f * ((float)Math.PI / 180.0f), 10.0f, 0.1f);
-            MainScene.ModelMatrix = Matrix4x4.Transpose(MatrixOperator.Scale(new Vector3(1f, 1f, 1f)) * MatrixOperator.RotateY(-20f * ((float)Math.PI / 180.0f)) * MatrixOperator.RotateX(20f * ((float)Math.PI / 180.0f)) * MatrixOperator.Move(new Vector3(0, 0, 0)));
+            MainScene.ModelMatrix = Matrix4x4.Transpose(MatrixOperator.Scale(new Vector3(0.01f, 0.01f, 0.01f)) * MatrixOperator.RotateY(-20f * ((float)Math.PI / 180.0f)) * MatrixOperator.RotateX(20f * ((float)Math.PI / 180.0f)) * MatrixOperator.Move(new Vector3(0, 0, 0)));
             MainScene.ViewMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewMatrix(MainScene.camera));
             MainScene.ProjectionMatrix = Matrix4x4.Transpose(MatrixOperator.GetProjectionMatrix(MainScene.camera));
             MainScene.ViewPortMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewPortMatrix(WindowWidth, WindowHeight));
@@ -125,7 +126,7 @@ namespace ObjVisualizer
                     }
 
                 }
-                
+
                 if (Math.Abs(positionDelta.X) < WindowWidth * 0.01)
                 {
                     if (positionDelta.Y < 0)
@@ -157,6 +158,56 @@ namespace ObjVisualizer
         private void MainWindow_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             MouseHandler.LastAction = MouseHandler.Actions.Idle;
+        }
+
+        private void MainWindow_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            switch (e.Key)
+            {
+                case Key.A:
+                    {
+                        MainScene.UpdateMoveMatrix(new Vector3(-.1f,0,0));
+                        MainScene.ResetTransformMatrixes();
+                        MainScene.ChangeStatus = true;
+                        break;
+                    }
+                case Key.D:
+                    {
+                        MainScene.UpdateMoveMatrix(new Vector3(.1f, 0, 0));
+                        MainScene.ResetTransformMatrixes();
+                        MainScene.ChangeStatus = true;
+                        break;
+                    }
+                    
+                case Key.S:
+                    {
+                        MainScene.UpdateMoveMatrix(new Vector3(0, -.1f, 0));
+                        MainScene.ResetTransformMatrixes();
+                        MainScene.ChangeStatus = true;
+                        break;
+                    }
+                case Key.W:
+                    {
+                        MainScene.UpdateMoveMatrix(new Vector3(0, .1f, 0));
+                        MainScene.ResetTransformMatrixes();
+                        MainScene.ChangeStatus = true;
+                        break;
+                    }
+
+                case Key.Decimal:
+                    {
+                        //MainScene.UpdateMoveMatrix(new Vector3(0, 0, 0));
+                        //MainScene.UpdateRotateMatrix(new Vector3(0, 0, 0));
+                        ////MainScene.UpdateMatrix(new Vector3(0, 0, 0));
+                        //MainScene.ResetTransformMatrixes();
+                        //MainScene.ChangeStatus = true;
+                        break;
+                    }
+                default:
+                    return;
+            }
+            
+           
         }
         private void Resize(object sender, SizeChangedEventArgs e)
         {
@@ -210,17 +261,14 @@ namespace ObjVisualizer
                         {
                             TempVertexI = MainScene.GetTransformedVertex(Vertex[Vertexes[i] - 1]);
 
-                            for (int j = i + 1; j < Vertexes.Count; j++)
-                            {
+                            TempVertexJ = MainScene.GetTransformedVertex(Vertex[Vertexes[i+1] - 1]);
 
-                                TempVertexJ = MainScene.GetTransformedVertex(Vertex[Vertexes[j] - 1]);
+                            if ((int)TempVertexI.X > 0 && (int)TempVertexJ.X > 0 &&
+                                (int)TempVertexI.Y > 0 && (int)TempVertexJ.Y > 0 &&
+                                (int)TempVertexI.X < WindowWidth && (int)TempVertexJ.X < WindowWidth &&
+                                (int)TempVertexI.Y < WindowHeight && (int)TempVertexJ.Y < WindowHeight)
+                                DrawLine((int)TempVertexI.X, (int)TempVertexI.Y, (int)TempVertexJ.X, (int)TempVertexJ.Y, pixels, stride);
 
-                                if ((int)TempVertexI.X > 0 && (int)TempVertexJ.X > 0 &&
-                                    (int)TempVertexI.Y > 0 && (int)TempVertexJ.Y > 0 &&
-                                    (int)TempVertexI.X < WindowWidth && (int)TempVertexJ.X < WindowWidth &&
-                                    (int)TempVertexI.Y < WindowHeight && (int)TempVertexJ.Y < WindowHeight)
-                                    DrawLine((int)TempVertexI.X, (int)TempVertexI.Y, (int)TempVertexJ.X, (int)TempVertexJ.Y, pixels, stride);
-                            }
                         }
 
 

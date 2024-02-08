@@ -51,9 +51,14 @@ namespace ObjVisualizer.GraphicsComponents
             return Vertex;
         }
 
+        public void UpdateViewMatrix()
+        {
+            ViewMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewMatrix(camera));
+        }
+
         public void UpdateModelMatrix()
         {
-            ModelMatrix = ScaleMatrix * RotateMatrix * MoveMatrix;
+            ModelMatrix = Matrix4x4.Transpose(ScaleMatrix * RotateMatrix * MoveMatrix);
         }
 
         public void ResetTransformMatrixes()
@@ -63,12 +68,19 @@ namespace ObjVisualizer.GraphicsComponents
             ScaleMatrix = Matrix4x4.Identity;
         }
 
+        public void UpdateMoveMatrix(Vector3 move)
+        {
+            MoveMatrix = MatrixOperator.Move(move);
+            UpdateModelMatrix();
+        }
+
         public void UpdateRotateMatrix(Vector3 rotation)
         {
             //RotateMatrix = MatrixOperator.RotateX(angleX * Math.PI / 180.0) * MatrixOperator.RotateY(angleY * Math.PI / 180.0) * MatrixOperator.RotateZ(angleZ * Math.PI / 180.0);
             RotateMatrix = MatrixOperator.RotateX(rotation.X * Math.PI / 180.0)*MatrixOperator.RotateY(rotation.Y * Math.PI / 180.0);
             UpdateModelMatrix();
         }
+
 
         public void UpdateScaleMatrix(float deltaScale)
         {

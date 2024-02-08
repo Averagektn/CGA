@@ -15,9 +15,9 @@ namespace ObjVisualizer.GraphicsComponents
 
         public static Matrix4x4 Move(Vector3 transition)
         {
-            return new Matrix4x4(1, 0, 0, transition.X,
-                                0, 1, 0, transition.Y,
-                                0, 0, 1, transition.Z,
+            return new Matrix4x4(1f, 0, 0, transition.X,
+                                0, 1f, 0, transition.Y,
+                                0, 0, 1f, transition.Z,
                                 0, 0, 0, 1.0f);
         }
         public static Matrix4x4 GetModelMatrix()
