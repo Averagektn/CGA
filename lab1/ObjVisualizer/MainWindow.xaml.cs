@@ -28,7 +28,7 @@ namespace ObjVisualizer
         private Scene MainScene;
         public MainWindow()
         {
-            Reader = ObjReader.GetObjReader("Objects\\Shrek.obj");
+            Reader = ObjReader.GetObjReader("Objects\\SM_Ship01A_02_OBJ.obj");
 
             InitializeComponent();
             InitializeWindowComponents();
@@ -81,7 +81,7 @@ namespace ObjVisualizer
             MainScene = Scene.GetScene();
 
             MainScene.camera = new Camera(new Vector3(0, 0, 1), new Vector3(0, 1, 0), new Vector3(0, -0.2f, 0), (float)WindowWidth / (float)WindowHeight, 70.0f * ((float)Math.PI / 180.0f), 10.0f, 0.1f);
-            MainScene.ModelMatrix = Matrix4x4.Transpose(MatrixOperator.Scale(new Vector3(0.01f, 0.01f, 0.01f)) * MatrixOperator.RotateY(-20f * ((float)Math.PI / 180.0f)) * MatrixOperator.RotateX(20f * ((float)Math.PI / 180.0f)) * MatrixOperator.Move(new Vector3(0, -50, 0)));
+            MainScene.ModelMatrix = Matrix4x4.Transpose(MatrixOperator.Scale(new Vector3(1f, 1f, 1f)) * MatrixOperator.RotateY(-20f * ((float)Math.PI / 180.0f)) * MatrixOperator.RotateX(20f * ((float)Math.PI / 180.0f)) * MatrixOperator.Move(new Vector3(0, 0, 0)));
             MainScene.ViewMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewMatrix(MainScene.camera));
             MainScene.ProjectionMatrix = Matrix4x4.Transpose(MatrixOperator.GetProjectionMatrix(MainScene.camera));
             MainScene.ViewPortMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewPortMatrix(WindowWidth, WindowHeight));
@@ -113,8 +113,8 @@ namespace ObjVisualizer
                 int NoActionSpaceY = WindowHeight / 200;
                 Vector3 rotationVector = new Vector3(0, 0, 0);
                 System.Windows.Vector positionDelta = currentPosition - LastMousePosition;
-                if (MouseHandler.LastAction == MouseHandler.Actions.YRotation)
-                {
+                //if (MouseHandler.LastAction == MouseHandler.Actions.YRotation)
+                //{
                     if (positionDelta.X < 0)
                     {
                         rotationVector.Y = -rotationAngleY;
@@ -123,9 +123,9 @@ namespace ObjVisualizer
                     {
                         rotationVector.Y = rotationAngleY;
                     }
-                }
-                else if (MouseHandler.LastAction == MouseHandler.Actions.XRotation)
-                {
+                //}
+                //else if (MouseHandler.LastAction == MouseHandler.Actions.XRotation)
+                //{
                     if (positionDelta.Y < 0)
                     {
                         rotationVector.X = -rotationAngleX;
@@ -134,8 +134,8 @@ namespace ObjVisualizer
                     {
                         rotationVector.X = rotationAngleX;
                     }
-                }else if (MouseHandler.LastAction == MouseHandler.Actions.Idle)
-                {
+                //}else if (MouseHandler.LastAction == MouseHandler.Actions.Idle)
+/*                {
                     if (Math.Abs(positionDelta.X) > 0 && Math.Abs(positionDelta.Y) < 10)
                     {
                         MouseHandler.LastAction = MouseHandler.Actions.YRotation;
@@ -144,7 +144,7 @@ namespace ObjVisualizer
                         MouseHandler.LastAction = MouseHandler.Actions.XRotation;
 
                     }
-                }
+                }*/
 
 
                     MainScene.UpdateRotateMatrix(rotationVector);
