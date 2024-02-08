@@ -28,7 +28,7 @@ namespace ObjVisualizer
         private Scene MainScene;
         public MainWindow()
         {
-            Reader = ObjReader.GetObjReader("Objects\\SM_Ship01A_02_OBJ.obj");
+            Reader = ObjReader.GetObjReader("Objects\\Shrek.obj");
 
             InitializeComponent();
             InitializeWindowComponents();
@@ -113,9 +113,7 @@ namespace ObjVisualizer
                 int NoActionSpaceY = WindowHeight / 200;
                 Vector3 rotationVector = new Vector3(0, 0, 0);
                 System.Windows.Vector positionDelta = currentPosition - LastMousePosition;
-                //if (MouseHandler.LastAction == MouseHandler.Actions.YRotation)
-                //{
-                if (Math.Abs(positionDelta.Y) < WindowHeight * 0.001)
+                if (Math.Abs(positionDelta.Y) < WindowHeight * 0.01)
                 {
                     if (positionDelta.X < 0)
                     {
@@ -127,7 +125,8 @@ namespace ObjVisualizer
                     }
 
                 }
-                else if (Math.Abs(positionDelta.X) < WindowWidth * 0.001)
+                
+                if (Math.Abs(positionDelta.X) < WindowWidth * 0.01)
                 {
                     if (positionDelta.Y < 0)
                     {
