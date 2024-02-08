@@ -113,7 +113,9 @@ namespace ObjVisualizer
                 int NoActionSpaceY = WindowHeight / 200;
                 Vector3 rotationVector = new Vector3(0, 0, 0);
                 System.Windows.Vector positionDelta = currentPosition - LastMousePosition;
-                if (MouseHandler.LastAction == MouseHandler.Actions.YRotation)
+                //if (MouseHandler.LastAction == MouseHandler.Actions.YRotation)
+                //{
+                if (Math.Abs(positionDelta.Y) < WindowHeight * 0.001)
                 {
                     if (positionDelta.X < 0)
                     {
@@ -123,8 +125,9 @@ namespace ObjVisualizer
                     {
                         rotationVector.Y = rotationAngleY;
                     }
+
                 }
-                else if (MouseHandler.LastAction == MouseHandler.Actions.XRotation)
+                else if (Math.Abs(positionDelta.X) < WindowWidth * 0.001)
                 {
                     if (positionDelta.Y < 0)
                     {
@@ -134,20 +137,11 @@ namespace ObjVisualizer
                     {
                         rotationVector.X = rotationAngleX;
                     }
-                }else if (MouseHandler.LastAction == MouseHandler.Actions.Idle)
-                {
-                    if (Math.Abs(positionDelta.X) > 0 && Math.Abs(positionDelta.Y) < 10)
-                    {
-                        MouseHandler.LastAction = MouseHandler.Actions.YRotation;
-                    }else if (Math.Abs(positionDelta.Y) > 0 && Math.Abs(positionDelta.X) < 10)
-                    {
-                        MouseHandler.LastAction = MouseHandler.Actions.XRotation;
-
-                    }
                 }
 
 
-                    MainScene.UpdateRotateMatrix(rotationVector);
+
+                MainScene.UpdateRotateMatrix(rotationVector);
                 MainScene.ResetTransformMatrixes();
 
                 LastMousePosition = currentPosition;
