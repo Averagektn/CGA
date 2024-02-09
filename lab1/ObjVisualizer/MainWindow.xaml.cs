@@ -24,11 +24,13 @@ namespace ObjVisualizer
         private int FrameCount;
         private IObjReader Reader;
         private Point LastMousePosition;
+        int number = 0;
+
 
         private Scene MainScene;
         public MainWindow()
         {
-            Reader = ObjReader.GetObjReader("Objects\\Shrek.obj");
+            Reader = ObjReader.GetObjReader("Objects\\SM_Ship01A_02_OBJ.obj");
 
             InitializeComponent();
             InitializeWindowComponents();
@@ -225,8 +227,7 @@ namespace ObjVisualizer
 
         async private void Frame()
         {
-            Vector4 TempVertexI;
-            Vector4 TempVertexJ;
+           
             var Vertex = Reader.Vertices.ToList();
             while (true)
             {
@@ -246,34 +247,29 @@ namespace ObjVisualizer
 
                         }
                     }
-
-                    foreach (var face in Reader.Faces)
+                    Parallel.ForEach(Reader.Faces, face =>
                     {
                         var FaceVertexes = face.VertexIds.ToList();
-                            TempVertexI = MainScene.GetTransformedVertex(Vertex[FaceVertexes[0] - 1]);
-                            TempVertexJ = MainScene.GetTransformedVertex(Vertex[FaceVertexes.Last() - 1]);
-                            if ((int)TempVertexI.X > 0 && (int)TempVertexJ.X > 0 &&
-                                        (int)TempVertexI.Y > 0 && (int)TempVertexJ.Y > 0 &&
-                                        (int)TempVertexI.X < WindowWidth && (int)TempVertexJ.X < WindowWidth &&
-                                        (int)TempVertexI.Y < WindowHeight && (int)TempVertexJ.Y < WindowHeight)
-                                DrawLine((int)TempVertexI.X, (int)TempVertexI.Y, (int)TempVertexJ.X, (int)TempVertexJ.Y, pixels, stride);
-                            for (int i = 0; i < FaceVertexes.Count - 1; i++)
-                            {
-                                TempVertexI = MainScene.GetTransformedVertex(Vertex[FaceVertexes[i] - 1]);
-
-                                TempVertexJ = MainScene.GetTransformedVertex(Vertex[FaceVertexes[i + 1] - 1]);
-
-                                if ((int)TempVertexI.X > 0 && (int)TempVertexJ.X > 0 &&
+                        Vector4 TempVertexI = MainScene.GetTransformedVertex(Vertex[FaceVertexes[0] - 1]);
+                        Vector4 TempVertexJ = MainScene.GetTransformedVertex(Vertex[FaceVertexes.Last() - 1]);
+                        if ((int)TempVertexI.X > 0 && (int)TempVertexJ.X > 0 &&
                                     (int)TempVertexI.Y > 0 && (int)TempVertexJ.Y > 0 &&
                                     (int)TempVertexI.X < WindowWidth && (int)TempVertexJ.X < WindowWidth &&
                                     (int)TempVertexI.Y < WindowHeight && (int)TempVertexJ.Y < WindowHeight)
-                                    DrawLine((int)TempVertexI.X, (int)TempVertexI.Y, (int)TempVertexJ.X, (int)TempVertexJ.Y, pixels, stride);
+                            DrawLine((int)TempVertexI.X, (int)TempVertexI.Y, (int)TempVertexJ.X, (int)TempVertexJ.Y, pixels, stride);
+                        for (int i = 0; i < FaceVertexes.Count - 1; i++)
+                        {
+                            TempVertexI = MainScene.GetTransformedVertex(Vertex[FaceVertexes[i] - 1]);
+                            TempVertexJ = MainScene.GetTransformedVertex(Vertex[FaceVertexes[i + 1] - 1])
+                            if ((int)TempVertexI.X > 0 && (int)TempVertexJ.X > 0 &&
+                                (int)TempVertexI.Y > 0 && (int)TempVertexJ.Y > 0 &&
+                                (int)TempVertexI.X < WindowWidth && (int)TempVertexJ.X < WindowWidth &&
+                                (int)TempVertexI.Y < WindowHeight && (int)TempVertexJ.Y < WindowHeight)
+                                DrawLine((int)TempVertexI.X, (int)TempVertexI.Y, (int)TempVertexJ.X, (int)TempVertexJ.Y, pixels, stride);
 
-                            }
-
-                    }
-
-
+                        }
+                        
+                    });
                 }
                 writableBitmap.AddDirtyRect(rect);
                 writableBitmap.Unlock();
@@ -287,6 +283,7 @@ namespace ObjVisualizer
 
         }
 
+       
         public unsafe void DrawLine(int x0, int y0, int x1, int y1, byte* data, int stride)
         {
 

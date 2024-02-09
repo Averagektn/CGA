@@ -28,7 +28,7 @@ namespace ObjVisualizer
         private Scene MainScene;
         public MainWindow()
         {
-            Reader = ObjReader.GetObjReader("Objects\\Shrek.obj");
+            Reader = ObjReader.GetObjReader("Objects\\Donut.obj");
 
             InitializeComponent();
             InitializeWindowComponents();
@@ -227,7 +227,7 @@ namespace ObjVisualizer
         {
             Vector4 TempVertexI;
             Vector4 TempVertexJ;
-            var Vertex = Reader.Vertices.ToList();
+            var Vertexes = Reader.Vertices.ToList();
             var Normales = Reader.VertexNormals.ToList();
 
             while (true)
@@ -242,11 +242,13 @@ namespace ObjVisualizer
                     byte* pixels = (byte*)buffer.ToPointer();
                     if (MainScene.ChangeStatus)
                     {
-                        for (int i = 0; i < Vertex.Count; i++)
+                        for (int i = 0; i < Vertexes.Count; i++)
                         {
-                            Vertex[i] = Vector4.Transform(Vertex[i], MainScene.ModelMatrix);
+                            Vertexes[i] = Vector4.Transform(Vertexes[i], MainScene.ModelMatrix);
+                        }
+                        for (int i = 0; i < Normales.Count; i++)
+                        {
                             Normales[i] = Vector3.Normalize(Vector3.Transform(Normales[i], MainScene.ModelMatrix));
-
                         }
                     }
 
@@ -254,7 +256,7 @@ namespace ObjVisualizer
                     {
                         var FaceVertexes = face.VertexIds.ToList();
                         var FaceNormales = face.NormalIds.ToList();                        
-                        var ZeroVertext = Vertex[FaceVertexes[0] - 1];
+                        var ZeroVertext = Vertexes[FaceVertexes[0] - 1];
                        
                         Vector3 PoliNormal = Vector3.Zero ;
                         for (int i =0; i < FaceNormales.Count;i++)
@@ -262,10 +264,10 @@ namespace ObjVisualizer
                             PoliNormal += Normales[FaceNormales[i]-1];   
                         }
                         
-                        if (Vector3.Dot(PoliNormal/ (float)FaceNormales.Count, MainScene.camera.Eye - new Vector3(Vertex[FaceVertexes[0] - 1].X, Vertex[FaceVertexes[0] - 1].Y, Vertex[FaceVertexes[0] - 1].Z)) >0)
+                        if (Vector3.Dot(PoliNormal/ (float)FaceNormales.Count,new Vector3(Vertexes[FaceVertexes[0] - 1].X, Vertexes[FaceVertexes[0] - 1].Y, Vertexes[FaceVertexes[0] - 1].Z) + MainScene.camera.Eye) >0)
                         {
-                            TempVertexI = MainScene.GetTransformedVertex(Vertex[FaceVertexes[0] - 1]);
-                            TempVertexJ = MainScene.GetTransformedVertex(Vertex[FaceVertexes.Last() - 1]);
+                            TempVertexI = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[0] - 1]);
+                            TempVertexJ = MainScene.GetTransformedVertex(Vertexes[FaceVertexes.Last() - 1]);
                             if ((int)TempVertexI.X > 0 && (int)TempVertexJ.X > 0 &&
                                         (int)TempVertexI.Y > 0 && (int)TempVertexJ.Y > 0 &&
                                         (int)TempVertexI.X < WindowWidth && (int)TempVertexJ.X < WindowWidth &&
@@ -273,9 +275,9 @@ namespace ObjVisualizer
                                 DrawLine((int)TempVertexI.X, (int)TempVertexI.Y, (int)TempVertexJ.X, (int)TempVertexJ.Y, pixels, stride);
                             for (int i = 0; i < FaceVertexes.Count - 1; i++)
                             {
-                                TempVertexI = MainScene.GetTransformedVertex(Vertex[FaceVertexes[i] - 1]);
+                                TempVertexI = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i] - 1]);
 
-                                TempVertexJ = MainScene.GetTransformedVertex(Vertex[FaceVertexes[i + 1] - 1]);
+                                TempVertexJ = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i + 1] - 1]);
 
                                 if ((int)TempVertexI.X > 0 && (int)TempVertexJ.X > 0 &&
                                     (int)TempVertexI.Y > 0 && (int)TempVertexJ.Y > 0 &&
