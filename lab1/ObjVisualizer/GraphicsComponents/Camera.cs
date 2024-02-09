@@ -14,7 +14,7 @@ namespace ObjVisualizer.GraphicsComponents
 
         public void ChangeCameraAspect(int Width, int Height)
         {
-            Aspect = (float)Width / (float)Height;
+            Aspect = (float)Width / Height;
         }
     }
 }

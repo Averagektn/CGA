@@ -8,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using Vector = System.Windows.Vector;
 
 namespace ObjVisualizer
 {
@@ -16,16 +17,20 @@ namespace ObjVisualizer
     /// </summary>
     public partial class MainWindow : Window
     {
+        private readonly Scene MainScene;
+        private readonly Image Image;
+        private readonly DispatcherTimer Timer;
+        private readonly TextBlock TextBlock;
+
+        private readonly IObjReader Reader;
+
+        private Point LastMousePosition;
+
         private int WindowWidth;
         private int WindowHeight;
-        private Image Image;
-        private DispatcherTimer timer;
-        private TextBlock textBlock;
         private int FrameCount;
         private IObjReader Reader;
         private Point LastMousePosition;
-        int number = 0;
-
 
         private Scene MainScene;
         public MainWindow()
@@ -33,61 +38,65 @@ namespace ObjVisualizer
             Reader = ObjReader.GetObjReader("Objects\\SM_Ship01A_02_OBJ.obj");
 
             InitializeComponent();
-            InitializeWindowComponents();
-            Frame();
 
-        }
-
-        private void InitializeWindowComponents()
-        {
-
-            Application.Current.MainWindow.SizeChanged += Resize;
+            SizeChanged += Resize;
             PreviewMouseWheel += MainWindow_PreviewMouseWheel;
             MouseMove += MainWindow_MouseMove;
             MouseLeftButtonDown += MainWindow_MouseLeftButtonDown;
             MouseLeftButtonUp += MainWindow_MouseLeftButtonUp;
             PreviewKeyDown += MainWindow_PreviewKeyDown;
-            WindowHeight = (int)this.Height;
-            WindowWidth = (int)this.Width;
 
+            WindowHeight = (int)Height;
+            WindowWidth = (int)Width;
 
-            timer = new DispatcherTimer();
-            timer.Interval = TimeSpan.FromSeconds(1);
-            timer.Tick += Timer_Tick;
+            Timer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(1)
+            };
+            Timer.Tick += Timer_Tick;
+            Timer.Start();
 
-            timer.Start();
             var grid = new Grid();
-            Image = new Image();
-            Image.Width = this.Width;
-            Image.Height = this.Height;
-            Image.Stretch = Stretch.Fill;
+            Image = new Image
+            {
+                Width = Width,
+                Height = Height,
+                Stretch = Stretch.Fill
+            };
 
-            textBlock = new TextBlock();
-            textBlock.HorizontalAlignment = HorizontalAlignment.Left;
-            textBlock.VerticalAlignment = VerticalAlignment.Bottom;
-            textBlock.FontSize = 12;
-            textBlock.Foreground = Brushes.White;
+            TextBlock = new TextBlock
+            {
+                HorizontalAlignment = HorizontalAlignment.Left,
+                VerticalAlignment = VerticalAlignment.Bottom,
+                FontSize = 12,
+                Foreground = Brushes.White
+            };
 
             grid.Children.Add(Image);
-            grid.Children.Add(textBlock);
+            grid.Children.Add(TextBlock);
 
             Grid.SetRow(Image, 0);
             Grid.SetColumn(Image, 0);
-            Grid.SetZIndex(Image, 0);
+            Panel.SetZIndex(Image, 0);
 
-            Grid.SetRow(textBlock, 0);
-            Grid.SetColumn(textBlock, 0);
-            Grid.SetZIndex(textBlock, 1);
+            Grid.SetRow(TextBlock, 0);
+            Grid.SetColumn(TextBlock, 0);
+            Panel.SetZIndex(TextBlock, 1);
 
-            this.Content = grid;
+            Content = grid;
 
             MainScene = Scene.GetScene();
 
-            MainScene.camera = new Camera(new Vector3(0, 0, 1), new Vector3(0, 1, 0), new Vector3(0, -0.2f, 0), (float)WindowWidth / (float)WindowHeight, 70.0f * ((float)Math.PI / 180.0f), 10.0f, 0.1f);
-            MainScene.ModelMatrix = Matrix4x4.Transpose(MatrixOperator.Scale(new Vector3(0.01f, 0.01f, 0.01f)) * MatrixOperator.RotateY(-20f * ((float)Math.PI / 180.0f)) * MatrixOperator.RotateX(20f * ((float)Math.PI / 180.0f)) * MatrixOperator.Move(new Vector3(0, 0, 0)));
-            MainScene.ViewMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewMatrix(MainScene.camera));
-            MainScene.ProjectionMatrix = Matrix4x4.Transpose(MatrixOperator.GetProjectionMatrix(MainScene.camera));
+            MainScene.Camera = new Camera(new Vector3(0, 0, 1), new Vector3(0, 1, 0), new Vector3(0, -0.2f, 0),
+                WindowWidth / (float)WindowHeight, 70.0f * ((float)Math.PI / 180.0f), 10.0f, 0.1f);
+            MainScene.ModelMatrix = Matrix4x4.Transpose(MatrixOperator.Scale(
+                new Vector3(0.01f, 0.01f, 0.01f)) * MatrixOperator.RotateY(-20f * ((float)Math.PI / 180.0f))
+                * MatrixOperator.RotateX(20f * ((float)Math.PI / 180.0f)) * MatrixOperator.Move(new Vector3(0, -50, 0)));
+            MainScene.ViewMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewMatrix(MainScene.Camera));
+            MainScene.ProjectionMatrix = Matrix4x4.Transpose(MatrixOperator.GetProjectionMatrix(MainScene.Camera));
             MainScene.ViewPortMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewPortMatrix(WindowWidth, WindowHeight));
+
+            Frame();
         }
 
         private void MainWindow_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
@@ -102,6 +111,7 @@ namespace ObjVisualizer
             {
                 MainScene.UpdateScaleMatrix(-0.2f);
             }
+
             MainScene.ChangeStatus = true;
             MainScene.ResetTransformMatrixes();
 
@@ -111,13 +121,13 @@ namespace ObjVisualizer
         {
             if (e.LeftButton == MouseButtonState.Pressed)
             {
-                Point currentPosition = e.GetPosition(this);
-                float rotationAngleY = 360.0f * 10 / (float)WindowWidth;
-                float rotationAngleX = 360.0f * 10 / (float)WindowHeight;
-                int NoActionSpaceX = WindowWidth / 200;
-                int NoActionSpaceY = WindowHeight / 200;
-                Vector3 rotationVector = new Vector3(0, 0, 0);
-                System.Windows.Vector positionDelta = currentPosition - LastMousePosition;
+                var currentPosition = e.GetPosition(this);
+                float rotationAngleY = 360.0f * 10 / WindowWidth;
+                float rotationAngleX = 360.0f * 10 / WindowHeight;
+
+                var rotationVector = new Vector3(0, 0, 0);
+                Vector positionDelta = currentPosition - LastMousePosition;
+
                 if (Math.Abs(positionDelta.Y) < WindowHeight * 0.01)
                 {
                     if (positionDelta.X < 0)
@@ -128,7 +138,6 @@ namespace ObjVisualizer
                     {
                         rotationVector.Y = rotationAngleY;
                     }
-
                 }
 
                 if (Math.Abs(positionDelta.X) < WindowWidth * 0.01)
@@ -143,108 +152,82 @@ namespace ObjVisualizer
                     }
                 }
 
-
-
                 MainScene.UpdateRotateMatrix(rotationVector);
                 MainScene.ResetTransformMatrixes();
 
                 LastMousePosition = currentPosition;
                 MainScene.ChangeStatus = true;
-
             }
         }
 
-        private void MainWindow_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
+        private void MainWindow_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) =>
             LastMousePosition = e.GetPosition(this);
-        }
 
-        private void MainWindow_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-        {
+        private void MainWindow_MouseLeftButtonUp(object sender, MouseButtonEventArgs e) =>
             MouseHandler.LastAction = MouseHandler.Actions.Idle;
-        }
 
         private void MainWindow_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             switch (e.Key)
             {
                 case Key.A:
-                    {
-                        MainScene.UpdateMoveMatrix(new Vector3(-.1f,0,0));
-                        MainScene.ResetTransformMatrixes();
-                        MainScene.ChangeStatus = true;
-                        break;
-                    }
+                    MainScene.UpdateMoveMatrix(new Vector3(.1f, 0, 0));
+                    MainScene.ResetTransformMatrixes();
+                    MainScene.ChangeStatus = true;
+                    break;
                 case Key.D:
-                    {
-                        MainScene.UpdateMoveMatrix(new Vector3(.1f, 0, 0));
-                        MainScene.ResetTransformMatrixes();
-                        MainScene.ChangeStatus = true;
-                        break;
-                    }
-                    
+                    MainScene.UpdateMoveMatrix(new Vector3(-.1f, 0, 0));
+                    MainScene.ResetTransformMatrixes();
+                    MainScene.ChangeStatus = true;
+                    break;
                 case Key.S:
-                    {
-                        MainScene.UpdateMoveMatrix(new Vector3(0, -.1f, 0));
-                        MainScene.ResetTransformMatrixes();
-                        MainScene.ChangeStatus = true;
-                        break;
-                    }
+                    MainScene.UpdateMoveMatrix(new Vector3(0, .1f, 0));
+                    MainScene.ResetTransformMatrixes();
+                    MainScene.ChangeStatus = true;
+                    break;
                 case Key.W:
-                    {
-                        MainScene.UpdateMoveMatrix(new Vector3(0, .1f, 0));
-                        MainScene.ResetTransformMatrixes();
-                        MainScene.ChangeStatus = true;
-                        break;
-                    }
-
-                case Key.Decimal:
-                    {
-                        //MainScene.UpdateMoveMatrix(new Vector3(0, 0, 0));
-                        //MainScene.UpdateRotateMatrix(new Vector3(0, 0, 0));
-                        ////MainScene.UpdateMatrix(new Vector3(0, 0, 0));
-                        //MainScene.ResetTransformMatrixes();
-                        //MainScene.ChangeStatus = true;
-                        break;
-                    }
+                    MainScene.UpdateMoveMatrix(new Vector3(0, -.1f, 0));
+                    MainScene.ResetTransformMatrixes();
+                    MainScene.ChangeStatus = true;
+                    break;
                 default:
                     return;
             }
-            
-           
         }
+
         private void Resize(object sender, SizeChangedEventArgs e)
         {
-
             Image.Width = (int)e.NewSize.Width;
             Image.Height = (int)e.NewSize.Height;
             WindowHeight = (int)e.NewSize.Height;
             WindowWidth = (int)e.NewSize.Width;
-            WriteableBitmap writableBitmap = new WriteableBitmap(WindowWidth, WindowHeight, 96, 96, PixelFormats.Bgr24, null);
+
             MainScene.SceneResize(WindowWidth, WindowHeight);
         }
 
 
-        async private void Frame()
+        private async void Frame()
         {
            
             var Vertex = Reader.Vertices.ToList();
             while (true)
             {
-                WriteableBitmap writableBitmap = new WriteableBitmap(WindowWidth, WindowHeight, 96, 96, PixelFormats.Bgr24, null);
-                Int32Rect rect = new Int32Rect(0, 0, WindowWidth, WindowHeight);
-                IntPtr buffer = writableBitmap.BackBuffer;
+                var writableBitmap = new WriteableBitmap(WindowWidth, WindowHeight, 96, 96, PixelFormats.Bgr24, null);
+                var rect = new Int32Rect(0, 0, WindowWidth, WindowHeight);
+                var buffer = writableBitmap.BackBuffer;
+
                 int stride = writableBitmap.BackBufferStride;
                 writableBitmap.Lock();
+
                 unsafe
                 {
                     byte* pixels = (byte*)buffer.ToPointer();
+
                     if (MainScene.ChangeStatus)
                     {
                         for (int i = 0; i < Vertex.Count; i++)
                         {
                             Vertex[i] = Vector4.Transform(Vertex[i], MainScene.ModelMatrix);
-
                         }
                     }
                     Parallel.ForEach(Reader.Faces, face =>
@@ -273,23 +256,24 @@ namespace ObjVisualizer
                 }
                 writableBitmap.AddDirtyRect(rect);
                 writableBitmap.Unlock();
+
                 MainScene.ModelMatrix = Matrix4x4.Transpose(MatrixOperator.GetModelMatrix());
                 MainScene.ChangeStatus = false;
+
                 Image.Source = writableBitmap;
+
                 FrameCount++;
+
                 await Task.Delay(1);
-
             }
-
         }
 
        
         public unsafe void DrawLine(int x0, int y0, int x1, int y1, byte* data, int stride)
         {
+            bool step = Math.Abs(y1 - y0) > Math.Abs(x1 - x0);
 
-            bool steep = Math.Abs(y1 - y0) > Math.Abs(x1 - x0);
-
-            if (steep)
+            if (step)
             {
                 (x0, y0) = (y0, x0);
                 (x1, y1) = (y1, x1);
@@ -307,9 +291,10 @@ namespace ObjVisualizer
             int ystep = (y0 < y1) ? 1 : -1;
             int y = y0;
             int var1, var2;
+
             for (int x = x0; x <= x1; x++)
             {
-                if (steep)
+                if (step)
                 {
                     var1 = x;
                     var2 = y;
@@ -319,12 +304,15 @@ namespace ObjVisualizer
                     var1 = y;
                     var2 = x;
                 }
+
                 byte* pixelPtr = data + var1 * stride + var2 * 3;
+
                 *(pixelPtr++) = 255;
                 *(pixelPtr++) = 255;
                 *(pixelPtr) = 255;
 
                 error -= dy;
+
                 if (error < 0)
                 {
                     y += ystep;
@@ -332,9 +320,10 @@ namespace ObjVisualizer
                 }
             }
         }
+
         private void Timer_Tick(object? sender, EventArgs e)
         {
-            textBlock.Text = FrameCount.ToString() + " fps";
+            TextBlock.Text = $"{FrameCount} fps";
             FrameCount = 0;
         }
     }
