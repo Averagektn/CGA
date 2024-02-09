@@ -110,6 +110,8 @@ namespace ObjVisualizer
             }
 
             MainScene.ChangeStatus = true;
+            MainScene.ResetTransformMatrixes();
+
             e.Handled = true;
         }
         private void MainWindow_MouseMove(object sender, MouseEventArgs e)
@@ -206,7 +208,6 @@ namespace ObjVisualizer
             Vector4 TempVertexI;
             Vector4 TempVertexJ;
             var Vertex = Reader.Vertices.ToList();
-
             while (true)
             {
                 var writableBitmap = new WriteableBitmap(WindowWidth, WindowHeight, 96, 96, PixelFormats.Bgr24, null);
