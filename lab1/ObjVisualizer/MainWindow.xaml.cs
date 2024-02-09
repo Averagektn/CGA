@@ -101,6 +101,8 @@ namespace ObjVisualizer
                 MainScene.UpdateScaleMatrix(-0.2f);
             }
             MainScene.ChangeStatus = true;
+            MainScene.ResetTransformMatrixes();
+
             e.Handled = true;
         }
         private void MainWindow_MouseMove(object sender, MouseEventArgs e)
@@ -225,7 +227,7 @@ namespace ObjVisualizer
         {
             Vector4 TempVertexI;
             Vector4 TempVertexJ;
-            var Vertex = Reader.Vertices.ToList();
+            var Vertexes = Reader.Vertices.ToList();
 
             while (true)
             {
@@ -239,37 +241,37 @@ namespace ObjVisualizer
                     byte* pixels = (byte*)buffer.ToPointer();
                     if (MainScene.ChangeStatus)
                     {
-                        for (int i = 0; i < Vertex.Count; i++)
+                        for (int i = 0; i < Vertexes.Count; i++)
                         {
-                            Vertex[i] = Vector4.Transform(Vertex[i], MainScene.ModelMatrix);
+                            Vertexes[i] = Vector4.Transform(Vertexes[i], MainScene.ModelMatrix);
 
                         }
                     }
 
                     foreach (var face in Reader.Faces)
                     {
+                        var FaceVertexes = face.VertexIds.ToList();
+                            TempVertexI = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[0] - 1]);
+                            TempVertexJ = MainScene.GetTransformedVertex(Vertexes[FaceVertexes.Last() - 1]);
+                            if ((int)TempVertexI.X > 0 && (int)TempVertexJ.X > 0 &&
+                                        (int)TempVertexI.Y > 0 && (int)TempVertexJ.Y > 0 &&
+                                        (int)TempVertexI.X < WindowWidth && (int)TempVertexJ.X < WindowWidth &&
+                                        (int)TempVertexI.Y < WindowHeight && (int)TempVertexJ.Y < WindowHeight)
+                                DrawLine((int)TempVertexI.X, (int)TempVertexI.Y, (int)TempVertexJ.X, (int)TempVertexJ.Y, pixels, stride);
+                            for (int i = 0; i < FaceVertexes.Count - 1; i++)
+                            {
+                                TempVertexI = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i] - 1]);
 
-                        var Vertexes = face.VertexIds.ToList();
-                        TempVertexI = MainScene.GetTransformedVertex(Vertex[Vertexes[0] - 1]);
-                        TempVertexJ = MainScene.GetTransformedVertex(Vertex[Vertexes.Last() - 1]);
-                        if ((int)TempVertexI.X > 0 && (int)TempVertexJ.X > 0 &&
+                                TempVertexJ = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i + 1] - 1]);
+
+                                if ((int)TempVertexI.X > 0 && (int)TempVertexJ.X > 0 &&
                                     (int)TempVertexI.Y > 0 && (int)TempVertexJ.Y > 0 &&
                                     (int)TempVertexI.X < WindowWidth && (int)TempVertexJ.X < WindowWidth &&
                                     (int)TempVertexI.Y < WindowHeight && (int)TempVertexJ.Y < WindowHeight)
-                            DrawLine((int)TempVertexI.X, (int)TempVertexI.Y, (int)TempVertexJ.X, (int)TempVertexJ.Y, pixels, stride);
-                        for (int i = 0; i < Vertexes.Count - 1; i++)
-                        {
-                            TempVertexI = MainScene.GetTransformedVertex(Vertex[Vertexes[i] - 1]);
+                                    DrawLine((int)TempVertexI.X, (int)TempVertexI.Y, (int)TempVertexJ.X, (int)TempVertexJ.Y, pixels, stride);
 
-                            TempVertexJ = MainScene.GetTransformedVertex(Vertex[Vertexes[i+1] - 1]);
+                            }
 
-                            if ((int)TempVertexI.X > 0 && (int)TempVertexJ.X > 0 &&
-                                (int)TempVertexI.Y > 0 && (int)TempVertexJ.Y > 0 &&
-                                (int)TempVertexI.X < WindowWidth && (int)TempVertexJ.X < WindowWidth &&
-                                (int)TempVertexI.Y < WindowHeight && (int)TempVertexJ.Y < WindowHeight)
-                                DrawLine((int)TempVertexI.X, (int)TempVertexI.Y, (int)TempVertexJ.X, (int)TempVertexJ.Y, pixels, stride);
-
-                        }
 
 
 
