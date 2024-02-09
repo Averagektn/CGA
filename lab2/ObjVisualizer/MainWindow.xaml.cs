@@ -28,7 +28,7 @@ namespace ObjVisualizer
         private Scene MainScene;
         public MainWindow()
         {
-            Reader = ObjReader.GetObjReader("Objects\\Donut.obj");
+            Reader = ObjReader.GetObjReader("Objects\\Ship.obj");
 
             InitializeComponent();
             InitializeWindowComponents();
@@ -225,8 +225,7 @@ namespace ObjVisualizer
 
         async private void Frame()
         {
-            Vector4 TempVertexI;
-            Vector4 TempVertexJ;
+          
             var Vertexes = Reader.Vertices.ToList();
             var Normales = Reader.VertexNormals.ToList();
 
@@ -251,23 +250,22 @@ namespace ObjVisualizer
                             Normales[i] = Vector3.Normalize(Vector3.Transform(Normales[i], MainScene.ModelMatrix));
                         }
                     }
-
-                    foreach (var face in Reader.Faces)
+                    Parallel.ForEach(Reader.Faces, face =>
                     {
                         var FaceVertexes = face.VertexIds.ToList();
-                        var FaceNormales = face.NormalIds.ToList();                        
+                        var FaceNormales = face.NormalIds.ToList();
                         var ZeroVertext = Vertexes[FaceVertexes[0] - 1];
-                       
-                        Vector3 PoliNormal = Vector3.Zero ;
-                        for (int i =0; i < FaceNormales.Count;i++)
+
+                        Vector3 PoliNormal = Vector3.Zero;
+                        for (int i = 0; i < FaceNormales.Count; i++)
                         {
-                            PoliNormal += Normales[FaceNormales[i]-1];   
+                            PoliNormal += Normales[FaceNormales[i] - 1];
                         }
-                        
-                        if (Vector3.Dot(PoliNormal/ (float)FaceNormales.Count,new Vector3(Vertexes[FaceVertexes[0] - 1].X, Vertexes[FaceVertexes[0] - 1].Y, Vertexes[FaceVertexes[0] - 1].Z) + MainScene.camera.Eye) >0)
+
+                        if (Vector3.Dot(PoliNormal / (float)FaceNormales.Count, new Vector3(Vertexes[FaceVertexes[0] - 1].X, Vertexes[FaceVertexes[0] - 1].Y, Vertexes[FaceVertexes[0] - 1].Z) + MainScene.camera.Eye) > 0)
                         {
-                            TempVertexI = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[0] - 1]);
-                            TempVertexJ = MainScene.GetTransformedVertex(Vertexes[FaceVertexes.Last() - 1]);
+                              Vector4 TempVertexI = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[0] - 1]);
+                            Vector4 TempVertexJ = MainScene.GetTransformedVertex(Vertexes[FaceVertexes.Last() - 1]);
                             if ((int)TempVertexI.X > 0 && (int)TempVertexJ.X > 0 &&
                                         (int)TempVertexI.Y > 0 && (int)TempVertexJ.Y > 0 &&
                                         (int)TempVertexI.X < WindowWidth && (int)TempVertexJ.X < WindowWidth &&
@@ -289,9 +287,7 @@ namespace ObjVisualizer
 
                         }
 
-
-
-                    }
+                    });
 
 
                 }

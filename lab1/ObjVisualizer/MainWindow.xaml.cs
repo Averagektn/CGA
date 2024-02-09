@@ -29,10 +29,6 @@ namespace ObjVisualizer
         private int WindowWidth;
         private int WindowHeight;
         private int FrameCount;
-        private IObjReader Reader;
-        private Point LastMousePosition;
-
-        private Scene MainScene;
         public MainWindow()
         {
             Reader = ObjReader.GetObjReader("Objects\\SM_Ship01A_02_OBJ.obj");
@@ -243,7 +239,7 @@ namespace ObjVisualizer
                         for (int i = 0; i < FaceVertexes.Count - 1; i++)
                         {
                             TempVertexI = MainScene.GetTransformedVertex(Vertex[FaceVertexes[i] - 1]);
-                            TempVertexJ = MainScene.GetTransformedVertex(Vertex[FaceVertexes[i + 1] - 1])
+                            TempVertexJ = MainScene.GetTransformedVertex(Vertex[FaceVertexes[i + 1] - 1]);
                             if ((int)TempVertexI.X > 0 && (int)TempVertexJ.X > 0 &&
                                 (int)TempVertexI.Y > 0 && (int)TempVertexJ.Y > 0 &&
                                 (int)TempVertexI.X < WindowWidth && (int)TempVertexJ.X < WindowWidth &&
