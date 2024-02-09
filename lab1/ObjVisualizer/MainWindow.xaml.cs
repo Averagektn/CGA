@@ -228,8 +228,6 @@ namespace ObjVisualizer
             Vector4 TempVertexI;
             Vector4 TempVertexJ;
             var Vertex = Reader.Vertices.ToList();
-            var Normales = Reader.VertexNormals.ToList();
-
             while (true)
             {
                 WriteableBitmap writableBitmap = new WriteableBitmap(WindowWidth, WindowHeight, 96, 96, PixelFormats.Bgr24, null);
@@ -245,7 +243,6 @@ namespace ObjVisualizer
                         for (int i = 0; i < Vertex.Count; i++)
                         {
                             Vertex[i] = Vector4.Transform(Vertex[i], MainScene.ModelMatrix);
-                            Normales[i] = Vector3.Normalize(Vector3.Transform(Normales[i], MainScene.ModelMatrix));
 
                         }
                     }
@@ -253,17 +250,6 @@ namespace ObjVisualizer
                     foreach (var face in Reader.Faces)
                     {
                         var FaceVertexes = face.VertexIds.ToList();
-                        var FaceNormales = face.NormalIds.ToList();                        
-                        var ZeroVertext = Vertex[FaceVertexes[0] - 1];
-                       
-                        Vector3 PoliNormal = Vector3.Zero ;
-                        for (int i =0; i < FaceNormales.Count;i++)
-                        {
-                            PoliNormal += Normales[FaceNormales[i]-1];   
-                        }
-                        
-                        if (Vector3.Dot(PoliNormal/ (float)FaceNormales.Count, MainScene.camera.Eye - new Vector3(Vertex[FaceVertexes[0] - 1].X, Vertex[FaceVertexes[0] - 1].Y, Vertex[FaceVertexes[0] - 1].Z)) >0)
-                        {
                             TempVertexI = MainScene.GetTransformedVertex(Vertex[FaceVertexes[0] - 1]);
                             TempVertexJ = MainScene.GetTransformedVertex(Vertex[FaceVertexes.Last() - 1]);
                             if ((int)TempVertexI.X > 0 && (int)TempVertexJ.X > 0 &&
@@ -284,10 +270,6 @@ namespace ObjVisualizer
                                     DrawLine((int)TempVertexI.X, (int)TempVertexI.Y, (int)TempVertexJ.X, (int)TempVertexJ.Y, pixels, stride);
 
                             }
-
-                        }
-
-
 
                     }
 
