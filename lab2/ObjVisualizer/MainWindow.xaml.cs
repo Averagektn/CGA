@@ -33,7 +33,7 @@ namespace ObjVisualizer
 
         public MainWindow()
         {
-            Reader = ObjReader.GetObjReader("Objects\\Ship.obj");
+            Reader = ObjReader.GetObjReader("Objects\\Shrek.obj");
 
             InitializeComponent();
 
@@ -42,11 +42,10 @@ namespace ObjVisualizer
             MouseMove += MainWindow_MouseMove;
             MouseLeftButtonDown += MainWindow_MouseLeftButtonDown;
             MouseLeftButtonUp += MainWindow_MouseLeftButtonUp;
-            PreviewKeyDown += MainWindow_PreviewKeyBitton;
-
 
             WindowWidth = (int)Width;
             WindowHeight = (int)Height;
+
             Timer = new DispatcherTimer
             {
                 Interval = TimeSpan.FromSeconds(1)
@@ -113,25 +112,15 @@ namespace ObjVisualizer
             if (e.LeftButton == MouseButtonState.Pressed)
             {
                 var currentPosition = e.GetPosition(this);
+
                 float xoffset = (float)(currentPosition.X - LastMousePosition.X);
                 float yoffset = (float)(LastMousePosition.Y - currentPosition.Y);
 
                 MainScene.Camera.CameraZeta += yoffset * 0.005f;
                 MainScene.Camera.CameraPhi += xoffset * 0.005f;
+
                 LastMousePosition = currentPosition;
             }
-        }
-
-        private void MainWindow_PreviewKeyBitton(object sender, KeyEventArgs e)
-        {
-            //switch (e.Key)
-            //{
-            //    case Key.A:
-            //        MainScene.Camera.
-            //        break;
-            //    default:
-            //        return;
-            //}
         }
 
         private void MainWindow_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) =>
@@ -144,85 +133,103 @@ namespace ObjVisualizer
         {
             Image.Width = (int)e.NewSize.Width;
             Image.Height = (int)e.NewSize.Height;
+
             WindowWidth = (int)Width;
             WindowHeight = (int)Height;
+
             MainScene.SceneResize(WindowWidth, WindowHeight);
         }
 
 
-        async private void Frame()
+        private async void Frame()
         {
-
             var Vertexes = Reader.Vertices.ToList();
             var Normales = Reader.VertexNormals.ToList();
             var Faces = Reader.Faces.ToList();
            
             while (true)
             {
-                WriteableBitmap writableBitmap = new WriteableBitmap(WindowWidth, WindowHeight, 96, 96, PixelFormats.Bgr24, null);
-                Int32Rect rect = new Int32Rect(0, 0, WindowWidth, WindowHeight);
+                var writableBitmap = new WriteableBitmap(WindowWidth, WindowHeight, 96, 96, PixelFormats.Bgr24, null);
+                var rect = new Int32Rect(0, 0, WindowWidth, WindowHeight);
+
                 IntPtr buffer = writableBitmap.BackBuffer;
+
                 int stride = writableBitmap.BackBufferStride;
                 writableBitmap.Lock();
+
                 MainScene.Camera.Eye = new Vector3(
                        MainScene.Camera.Radius * (float)Math.Cos(MainScene.Camera.CameraPhi) * (float)Math.Sin(MainScene.Camera.CameraZeta),
                        MainScene.Camera.Radius * (float)Math.Cos(MainScene.Camera.CameraZeta),
                        MainScene.Camera.Radius * (float)Math.Sin(MainScene.Camera.CameraPhi) * (float)Math.Sin(MainScene.Camera.CameraZeta));
 
                 MainScene.UpdateViewMatix();
+
+                var drawer = new Drawer(WindowWidth, WindowHeight, buffer, stride);
+
                 unsafe
                 {
                     byte* pixels = (byte*)buffer.ToPointer();
-                    Parallel.ForEach(Faces, face =>
+
+                    Parallel.ForEach(Reader.Faces, face =>
                     {
                         var FaceVertexes = face.VertexIds.ToList();
                         var FaceNormales = face.NormalIds.ToList();
                         var ZeroVertext = Vertexes[FaceVertexes[0] - 1];
 
                         Vector3 PoliNormal = Vector3.Zero;
+
                         for (int i = 0; i < FaceNormales.Count; i++)
                         {
                             PoliNormal += Normales[FaceNormales[i] - 1];
                         }
-                        
 
-                        if (Vector3.Dot(PoliNormal / (float)FaceNormales.Count, new Vector3(Vertexes[FaceVertexes[0] - 1].X, Vertexes[FaceVertexes[0] - 1].Y, Vertexes[FaceVertexes[0] - 1].Z) + MainScene.Camera.Eye) > 0)
+                        if (Vector3.Dot(PoliNormal / FaceNormales.Count, new Vector3(Vertexes[FaceVertexes[0] - 1].X,
+                            Vertexes[FaceVertexes[0] - 1].Y, Vertexes[FaceVertexes[0] - 1].Z) + MainScene.Camera.Eye) > 0)
                         {
                             Vector4 TempVertexI = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[0] - 1]);
                             Vector4 TempVertexJ = MainScene.GetTransformedVertex(Vertexes[FaceVertexes.Last() - 1]);
+
                             if ((int)TempVertexI.X > 0 && (int)TempVertexJ.X > 0 &&
                                         (int)TempVertexI.Y > 0 && (int)TempVertexJ.Y > 0 &&
                                         (int)TempVertexI.X < WindowWidth && (int)TempVertexJ.X < WindowWidth &&
                                         (int)TempVertexI.Y < WindowHeight && (int)TempVertexJ.Y < WindowHeight)
-                                DrawLine((int)TempVertexI.X, (int)TempVertexI.Y, (int)TempVertexJ.X, (int)TempVertexJ.Y, pixels, stride);
+                            {
+                                DrawLine((int)TempVertexI.X, (int)TempVertexI.Y, (int)TempVertexJ.X, (int)TempVertexJ.Y,
+                                    pixels, stride);
+                            }
+
                             for (int i = 0; i < FaceVertexes.Count - 1; i++)
                             {
                                 TempVertexI = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i] - 1]);
-
                                 TempVertexJ = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i + 1] - 1]);
 
                                 if ((int)TempVertexI.X > 0 && (int)TempVertexJ.X > 0 &&
                                     (int)TempVertexI.Y > 0 && (int)TempVertexJ.Y > 0 &&
                                     (int)TempVertexI.X < WindowWidth && (int)TempVertexJ.X < WindowWidth &&
                                     (int)TempVertexI.Y < WindowHeight && (int)TempVertexJ.Y < WindowHeight)
-                                    DrawLine((int)TempVertexI.X, (int)TempVertexI.Y, (int)TempVertexJ.X, (int)TempVertexJ.Y, pixels, stride);
-
+                                {
+                                    DrawLine((int)TempVertexI.X, (int)TempVertexI.Y, (int)TempVertexJ.X, (int)TempVertexJ.Y,
+                                        pixels, stride);
+                                }
                             }
 
+                            //drawer.Rasterize(Vertexes.Select(v => MainScene.GetTransformedVertex(v)).ToList());
                         }
-
                     });
-
-
                 }
+
                 writableBitmap.AddDirtyRect(rect);
                 writableBitmap.Unlock();
+
+                MainScene.ModelMatrix = Matrix4x4.Transpose(MatrixOperator.GetModelMatrix());
+                MainScene.ChangeStatus = false;
+
                 Image.Source = writableBitmap;
+
                 FrameCount++;
+
                 await Task.Delay(1);
-
             }
-
         }
 
 
@@ -264,9 +271,9 @@ namespace ObjVisualizer
 
                 byte* pixelPtr = data + var1 * stride + var2 * 3;
 
-                *(pixelPtr++) = 255;
-                *(pixelPtr++) = 255;
-                *(pixelPtr) = 255;
+                *pixelPtr++ = 255;
+                *pixelPtr++ = 255;
+                *pixelPtr = 255;
 
                 error -= dy;
 

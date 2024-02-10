@@ -45,7 +45,6 @@ namespace ObjVisualizer.GraphicsComponents
             Vector3 ZAxis = Vector3.Normalize(-Vector3.Subtract(camera.Target, camera.Eye));
             Vector3 XAxis = Vector3.Normalize(Vector3.Cross(camera.Up, ZAxis));
             Vector3 YAxis = Vector3.Cross(ZAxis, XAxis);
-;
 
             return new Matrix4x4(XAxis.X, XAxis.Y, XAxis.Z, -Vector3.Dot(XAxis, camera.Eye),
                                  YAxis.X, YAxis.Y, YAxis.Z, -Vector3.Dot(YAxis, camera.Eye),
