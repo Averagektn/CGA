@@ -26,13 +26,13 @@ namespace ObjVisualizer
 
         private Point LastMousePosition;
 
-        private int WindowWidth => (int)Width;
-        private int WindowHeight => (int)Height;
+        private int WindowWidth ;
+        private int WindowHeight ;
         private int FrameCount;
 
         public MainWindow()
         {
-            Reader = ObjReader.GetObjReader("Objects\\teapot.obj");
+            Reader = ObjReader.GetObjReader("Objects\\SM_Ship01A_02_OBJ.obj");
 
             InitializeComponent();
 
@@ -41,7 +41,8 @@ namespace ObjVisualizer
             MouseMove += MainWindow_MouseMove;
             MouseLeftButtonDown += MainWindow_MouseLeftButtonDown;
             MouseLeftButtonUp += MainWindow_MouseLeftButtonUp;
-
+            WindowWidth = (int)Width;
+            WindowHeight = (int)Height;
             Timer = new DispatcherTimer
             {
                 Interval = TimeSpan.FromSeconds(1)
@@ -127,6 +128,8 @@ namespace ObjVisualizer
         {
             Image.Width = (int)e.NewSize.Width;
             Image.Height = (int)e.NewSize.Height;
+            WindowWidth = (int)Width;
+            WindowHeight = (int)Height;
             MainScene.SceneResize(WindowWidth, WindowHeight);
         }
 
