@@ -160,6 +160,9 @@ namespace ObjVisualizer
                        MainScene.Camera.Radius * (float)Math.Sin(MainScene.Camera.CameraPhi) * (float)Math.Sin(MainScene.Camera.CameraZeta));
 
                 MainScene.UpdateViewMatix();
+
+                var drawer = new Drawer(WindowWidth, WindowHeight, buffer, stride);
+
                 unsafe
                 {
                     byte* pixels = (byte*)buffer.ToPointer();
@@ -206,6 +209,8 @@ namespace ObjVisualizer
                                         pixels, stride);
                                 }
                             }
+
+                            //drawer.Rasterize(Vertexes.Select(v => MainScene.GetTransformedVertex(v)).ToList());
                         }
                     });
                 }
