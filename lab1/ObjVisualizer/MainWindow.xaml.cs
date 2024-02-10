@@ -29,6 +29,7 @@ namespace ObjVisualizer
         private int WindowWidth;
         private int WindowHeight;
         private int FrameCount;
+
         public MainWindow()
         {
             Reader = ObjReader.GetObjReader("Objects\\SM_Ship01A_02_OBJ.obj");
@@ -83,7 +84,7 @@ namespace ObjVisualizer
 
             MainScene = Scene.GetScene();
 
-            MainScene.Camera = new Camera(new Vector3(0, 0, 1), new Vector3(0, 1, 0), new Vector3(0, -0.2f, 0),
+            MainScene.Camera = new Camera(new Vector3(0, 0, 1), new Vector3(0, 1, 0), new Vector3(0, 0, 0),
                 WindowWidth / (float)WindowHeight, 70.0f * ((float)Math.PI / 180.0f), 10.0f, 0.1f);
             MainScene.ModelMatrix = Matrix4x4.Transpose(MatrixOperator.Scale(
                 new Vector3(0.01f, 0.01f, 0.01f)) * MatrixOperator.RotateY(-20f * ((float)Math.PI / 180.0f))
@@ -113,6 +114,7 @@ namespace ObjVisualizer
 
             e.Handled = true;
         }
+
         private void MainWindow_MouseMove(object sender, MouseEventArgs e)
         {
             if (e.LeftButton == MouseButtonState.Pressed)
@@ -195,6 +197,8 @@ namespace ObjVisualizer
         {
             Image.Width = (int)e.NewSize.Width;
             Image.Height = (int)e.NewSize.Height;
+
+            // GOVNO PEREDELAI
             WindowHeight = (int)e.NewSize.Height;
             WindowWidth = (int)e.NewSize.Width;
 
@@ -204,8 +208,8 @@ namespace ObjVisualizer
 
         private async void Frame()
         {
-           
             var Vertex = Reader.Vertices.ToList();
+
             while (true)
             {
                 var writableBitmap = new WriteableBitmap(WindowWidth, WindowHeight, 96, 96, PixelFormats.Bgr24, null);
@@ -230,12 +234,15 @@ namespace ObjVisualizer
                     {
                         var FaceVertexes = face.VertexIds.ToList();
                         Vector4 TempVertexI = MainScene.GetTransformedVertex(Vertex[FaceVertexes[0] - 1]);
-                        Vector4 TempVertexJ = MainScene.GetTransformedVertex(Vertex[FaceVertexes.Last() - 1]);
+                        Vector4 TempVertexJ = MainScene.GetTransformedVertex(Vertex[FaceVertexes[^1] - 1]);
                         if ((int)TempVertexI.X > 0 && (int)TempVertexJ.X > 0 &&
                                     (int)TempVertexI.Y > 0 && (int)TempVertexJ.Y > 0 &&
                                     (int)TempVertexI.X < WindowWidth && (int)TempVertexJ.X < WindowWidth &&
                                     (int)TempVertexI.Y < WindowHeight && (int)TempVertexJ.Y < WindowHeight)
+                        {
                             DrawLine((int)TempVertexI.X, (int)TempVertexI.Y, (int)TempVertexJ.X, (int)TempVertexJ.Y, pixels, stride);
+                        }
+                            
                         for (int i = 0; i < FaceVertexes.Count - 1; i++)
                         {
                             TempVertexI = MainScene.GetTransformedVertex(Vertex[FaceVertexes[i] - 1]);
@@ -244,8 +251,9 @@ namespace ObjVisualizer
                                 (int)TempVertexI.Y > 0 && (int)TempVertexJ.Y > 0 &&
                                 (int)TempVertexI.X < WindowWidth && (int)TempVertexJ.X < WindowWidth &&
                                 (int)TempVertexI.Y < WindowHeight && (int)TempVertexJ.Y < WindowHeight)
+                            {
                                 DrawLine((int)TempVertexI.X, (int)TempVertexI.Y, (int)TempVertexJ.X, (int)TempVertexJ.Y, pixels, stride);
-
+                            }
                         }
                         
                     });
