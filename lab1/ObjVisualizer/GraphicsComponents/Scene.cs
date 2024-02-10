@@ -21,13 +21,13 @@ namespace ObjVisualizer.GraphicsComponents
 
         private Scene()
         {
-            ModelMatrix = Matrix4x4.Identity;
-            ViewMatrix = Matrix4x4.Identity;
-            ProjectionMatrix = Matrix4x4.Identity;
-            ViewPortMatrix = Matrix4x4.Identity;
-            RotateMatrix = Matrix4x4.Identity;
-            ScaleMatrix = Matrix4x4.Identity;
-            MoveMatrix = Matrix4x4.Identity;
+            ModelMatrix = Matrix4x4.Transpose(Matrix4x4.Identity);
+            ViewMatrix = Matrix4x4.Transpose(Matrix4x4.Identity);
+            ProjectionMatrix = Matrix4x4.Transpose(Matrix4x4.Identity);
+            ViewPortMatrix = Matrix4x4.Transpose(Matrix4x4.Identity);
+            RotateMatrix = Matrix4x4.Transpose(Matrix4x4.Identity);
+            ScaleMatrix = Matrix4x4.Transpose(Matrix4x4.Identity);
+            MoveMatrix = Matrix4x4.Transpose(Matrix4x4.Identity);
             Camera = new Camera(Vector3.Zero, Vector3.Zero, Vector3.Zero, 0, 0, 0, 0);
             ChangeStatus = true;
         }
@@ -67,7 +67,7 @@ namespace ObjVisualizer.GraphicsComponents
 
         public void UpdateModelMatrix()
         {
-            ModelMatrix = Matrix4x4.Transpose(ScaleMatrix * RotateMatrix * MoveMatrix);
+            ModelMatrix = Matrix4x4.Transpose(MoveMatrix);
         }
 
         public void ResetTransformMatrixes()

@@ -32,7 +32,7 @@ namespace ObjVisualizer
 
         public MainWindow()
         {
-            Reader = ObjReader.GetObjReader("Objects\\SM_Ship01A_02_OBJ.obj");
+            Reader = ObjReader.GetObjReader("Objects\\teapot.obj");
 
             InitializeComponent();
 
@@ -84,11 +84,11 @@ namespace ObjVisualizer
 
             MainScene = Scene.GetScene();
 
-            MainScene.Camera = new Camera(new Vector3(0, 0, 1), new Vector3(0, 1, 0), new Vector3(0, 0, 0),
+            MainScene.Camera = new Camera(new Vector3(0, 2f, 2f), new Vector3(0, 1, 0), new Vector3(0, 1, 0),
                 WindowWidth / (float)WindowHeight, 70.0f * ((float)Math.PI / 180.0f), 10.0f, 0.1f);
             MainScene.ModelMatrix = Matrix4x4.Transpose(MatrixOperator.Scale(
                 new Vector3(0.01f, 0.01f, 0.01f)) * MatrixOperator.RotateY(-20f * ((float)Math.PI / 180.0f))
-                * MatrixOperator.RotateX(20f * ((float)Math.PI / 180.0f)) * MatrixOperator.Move(new Vector3(0, -50, 0)));
+                * MatrixOperator.RotateX(20f * ((float)Math.PI / 180.0f)) * MatrixOperator.Move(new Vector3(0, 0, 0)));
             MainScene.ViewMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewMatrix(MainScene.Camera));
             MainScene.ProjectionMatrix = Matrix4x4.Transpose(MatrixOperator.GetProjectionMatrix(MainScene.Camera));
             MainScene.ViewPortMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewPortMatrix(WindowWidth, WindowHeight));
@@ -102,15 +102,18 @@ namespace ObjVisualizer
 
             if (scrollDelta > 0)
             {
-                MainScene.UpdateScaleMatrix(0.2f);
+                //MainScene.UpdateScaleMatrix(0.2f);
+                MainScene.Camera.Radius += -1f;
             }
             else if (scrollDelta < 0)
             {
-                MainScene.UpdateScaleMatrix(-0.2f);
+                //MainScene.UpdateScaleMatrix(-0.2f);
+                MainScene.Camera.Radius += 1f;
+
             }
 
-            MainScene.ChangeStatus = true;
-            MainScene.ResetTransformMatrixes();
+            //MainScene.ChangeStatus = true;
+            //MainScene.ResetTransformMatrixes();
 
             e.Handled = true;
         }
@@ -120,38 +123,41 @@ namespace ObjVisualizer
             if (e.LeftButton == MouseButtonState.Pressed)
             {
                 var currentPosition = e.GetPosition(this);
-                float rotationAngleY = 360.0f * 10 / WindowWidth;
-                float rotationAngleX = 360.0f * 10 / WindowHeight;
+                //float rotationAngleY = (360.0f / WindowWidth) * 0.05f;
+                //float rotationAngleX = (360.0f / WindowHeight )* 0.05f;
 
                 var rotationVector = new Vector3(0, 0, 0);
                 Vector positionDelta = currentPosition - LastMousePosition;
+                positionDelta *= 0.005f;
 
-                if (Math.Abs(positionDelta.Y) < WindowHeight * 0.01)
-                {
-                    if (positionDelta.X < 0)
-                    {
-                        rotationVector.Y = -rotationAngleY;
-                    }
-                    else if (positionDelta.X > 0)
-                    {
-                        rotationVector.Y = rotationAngleY;
-                    }
-                }
+                //if (Math.Abs(positionDelta.Y) < WindowHeight * 0.01)
+                //{
+                //    if (positionDelta.X < 0)
+                //    {
+                //        rotationVector.Y = -rotationAngleY;
+                //    }
+                //    else if (positionDelta.X > 0)
+                //    {
+                //        rotationVector.Y = rotationAngleY;
+                //    }
+                //}
 
-                if (Math.Abs(positionDelta.X) < WindowWidth * 0.01)
-                {
-                    if (positionDelta.Y < 0)
-                    {
-                        rotationVector.X = -rotationAngleX;
-                    }
-                    else if (positionDelta.Y > 0)
-                    {
-                        rotationVector.X = rotationAngleX;
-                    }
-                }
+                //if (Math.Abs(positionDelta.X) < WindowWidth * 0.01)
+                //{
+                //    if (positionDelta.Y < 0)
+                //    {
+                //        rotationVector.X = -rotationAngleX;
+                //    }
+                //    else if (positionDelta.Y > 0)
+                //    {
+                //        rotationVector.X = rotationAngleX;
+                //    }
+                //}
 
-                MainScene.UpdateRotateMatrix(rotationVector);
-                MainScene.ResetTransformMatrixes();
+                MainScene.Camera.CameraZeta += (float)positionDelta.Y;
+                MainScene.Camera.CameraPhi += (float)positionDelta.X;
+                //MainScene.UpdateRotateMatrix(rotationVector);
+                //MainScene.ResetTransformMatrixes();
 
                 LastMousePosition = currentPosition;
                 MainScene.ChangeStatus = true;
@@ -169,9 +175,11 @@ namespace ObjVisualizer
             switch (e.Key)
             {
                 case Key.A:
-                    MainScene.UpdateMoveMatrix(new Vector3(.1f, 0, 0));
-                    MainScene.ResetTransformMatrixes();
-                    MainScene.ChangeStatus = true;
+                    //MainScene.UpdateMoveMatrix(new Vector3(.1f, 0, 0));
+                    //MainScene.ResetTransformMatrixes();
+                    //MainScene.ChangeStatus = true;
+
+                    
                     break;
                 case Key.D:
                     MainScene.UpdateMoveMatrix(new Vector3(-.1f, 0, 0));
@@ -218,18 +226,22 @@ namespace ObjVisualizer
 
                 int stride = writableBitmap.BackBufferStride;
                 writableBitmap.Lock();
-
+                MainScene.Camera.Eye = new Vector3(
+                        MainScene.Camera.Radius * (float)Math.Cos(MainScene.Camera.CameraPhi) * (float)Math.Sin(MainScene.Camera.CameraZeta),
+                        MainScene.Camera.Radius * (float)Math.Cos(MainScene.Camera.CameraZeta),
+                        MainScene.Camera.Radius * (float)Math.Sin(MainScene.Camera.CameraPhi) * (float)Math.Sin(MainScene.Camera.CameraZeta));
+                MainScene.UpdateViewMatix();
                 unsafe
                 {
                     byte* pixels = (byte*)buffer.ToPointer();
 
-                    if (MainScene.ChangeStatus)
-                    {
-                        for (int i = 0; i < Vertex.Count; i++)
-                        {
-                            Vertex[i] = Vector4.Transform(Vertex[i], MainScene.ModelMatrix);
-                        }
-                    }
+                    //if (MainScene.ChangeStatus)
+                    //{
+                    //    for (int i = 0; i < Vertex.Count; i++)
+                    //    {
+                    //        Vertex[i] = Vector4.Transform(Vertex[i], MainScene.ModelMatrix);
+                    //    }
+                    //}
                     Parallel.ForEach(Reader.Faces, face =>
                     {
                         var FaceVertexes = face.VertexIds.ToList();
@@ -261,8 +273,8 @@ namespace ObjVisualizer
                 writableBitmap.AddDirtyRect(rect);
                 writableBitmap.Unlock();
 
-                MainScene.ModelMatrix = Matrix4x4.Transpose(MatrixOperator.GetModelMatrix());
-                MainScene.ChangeStatus = false;
+                //MainScene.ModelMatrix = Matrix4x4.Transpose(MatrixOperator.GetModelMatrix());
+                //MainScene.ChangeStatus = false;
 
                 Image.Source = writableBitmap;
 
