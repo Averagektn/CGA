@@ -62,13 +62,13 @@ namespace ObjVisualizer.GraphicsComponents
 
         public void UpdateViewMatrix()
         {
-            ViewMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewMatrix(Camera));
+            ViewMatrix = MatrixOperator.GetViewMatrix(Camera);
         }
 
-        public void UpdateModelMatrix()
-        {
-            ModelMatrix = Matrix4x4.Transpose(MoveMatrix);
-        }
+        //public void UpdateModelMatrix()
+        //{
+        //    ModelMatrix = Matrix4x4.Transpose(MoveMatrix);
+        //}
 
         public void ResetTransformMatrixes()
         {
@@ -77,24 +77,24 @@ namespace ObjVisualizer.GraphicsComponents
             ScaleMatrix = Matrix4x4.Transpose(Matrix4x4.Identity);
         }
 
-        public void UpdateMoveMatrix(Vector3 move)
-        {
-            MoveMatrix = MatrixOperator.Move(move);
-            UpdateModelMatrix();
-        }
+        //public void UpdateMoveMatrix(Vector3 move)
+        //{
+        //    MoveMatrix = MatrixOperator.Move(move);
+        //    UpdateModelMatrix();
+        //}
 
-        public void UpdateRotateMatrix(Vector3 rotation)
-        {
-            RotateMatrix = MatrixOperator.RotateX(rotation.X * Math.PI / 180.0)
-                * MatrixOperator.RotateY(rotation.Y * Math.PI / 180.0);
+        //public void UpdateRotateMatrix(Vector3 rotation)
+        //{
+        //    RotateMatrix = MatrixOperator.RotateX(rotation.X * Math.PI / 180.0)
+        //        * MatrixOperator.RotateY(rotation.Y * Math.PI / 180.0);
 
-            UpdateModelMatrix();
-        }
+        //    UpdateModelMatrix();
+        //}
 
-        public void UpdateScaleMatrix(float deltaScale)
-        {
-            ScaleMatrix = MatrixOperator.Scale(new Vector3(1 + deltaScale, 1 + deltaScale, 1 + deltaScale));
-            UpdateModelMatrix();
-        }
+        //public void UpdateScaleMatrix(float deltaScale)
+        //{
+        //    ScaleMatrix = MatrixOperator.Scale(new Vector3(1 + deltaScale, 1 + deltaScale, 1 + deltaScale));
+        //    UpdateModelMatrix();
+        //}
     }
 }

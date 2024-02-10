@@ -42,9 +42,10 @@ namespace ObjVisualizer.GraphicsComponents
 
         public static Matrix4x4 GetViewMatrix(Camera camera)
         {
-            Vector3 ZAxis = Vector3.Normalize(Vector3.Subtract(camera.Eye, camera.Target));
+            Vector3 ZAxis = Vector3.Normalize(-Vector3.Subtract(camera.Target, camera.Eye));
             Vector3 XAxis = Vector3.Normalize(Vector3.Cross(camera.Up, ZAxis));
-            Vector3 YAxis = camera.Up;
+            Vector3 YAxis = Vector3.Cross(ZAxis, XAxis);
+;
 
             return new Matrix4x4(XAxis.X, XAxis.Y, XAxis.Z, -Vector3.Dot(XAxis, camera.Eye),
                                  YAxis.X, YAxis.Y, YAxis.Z, -Vector3.Dot(YAxis, camera.Eye),
@@ -59,8 +60,8 @@ namespace ObjVisualizer.GraphicsComponents
                 0, 0, -1.0f, 0);
 
         public static Matrix4x4 GetViewPortMatrix(int Width, int Height) =>
-            new(Width >> 1, 0, 0, (Width - 1) >> 1,
-                0, -(Height >> 1), 0, (Height - 1) >> 1,
+            new(Width >> 1, 0, 0, Width >> 1,
+                0, -(Height >> 1), 0, Height >> 1,
                 0, 0, 1.0f, 0,
                 0, 0, 0, 1.0f);
     }
