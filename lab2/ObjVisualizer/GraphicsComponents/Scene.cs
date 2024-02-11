@@ -15,6 +15,17 @@ namespace ObjVisualizer.GraphicsComponents
 
         private static Scene? Instance;
 
+        public LabaStage Stage;
+
+        public enum LabaStage
+        {
+            Laba1,
+            Laba2,
+            Laba3,
+            Laba4,
+            Laba5
+        }
+
         private Matrix4x4 RotateMatrix;
         private Matrix4x4 ScaleMatrix;
         private Matrix4x4 MoveMatrix;

@@ -40,6 +40,7 @@ namespace ObjVisualizer
             MouseMove += MainWindow_MouseMove;
             MouseLeftButtonDown += MainWindow_MouseLeftButtonDown;
             MouseLeftButtonUp += MainWindow_MouseLeftButtonUp;
+            PreviewKeyDown += MainWindow_PreviewKeyDown;
 
             WindowWidth = (int)Width;
             WindowHeight = (int)Height;
@@ -81,6 +82,7 @@ namespace ObjVisualizer
             Content = grid;
 
             MainScene = Scene.GetScene();
+            MainScene.Stage = Scene.LabaStage.Laba1;
 
             MainScene.Camera = new Camera(new Vector3(0, 0f, 0f), new Vector3(0, 1, 0), new Vector3(0, 0, 0),
                 WindowWidth / (float)WindowHeight, 70.0f * ((float)Math.PI / 180.0f), 10.0f, 0.1f);
@@ -103,6 +105,30 @@ namespace ObjVisualizer
             MainScene.Camera.Radius += -e.Delta / 100;
 
             e.Handled = true;
+        }
+
+        private void MainWindow_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            switch (e.Key)
+            {
+                case Key.D1:
+                    MainScene.Stage = Scene.LabaStage.Laba1;
+                    break;
+                case Key.D2:
+                    MainScene.Stage = Scene.LabaStage.Laba2;
+                    break;
+                case Key.D3:
+                    MainScene.Stage = Scene.LabaStage.Laba3;
+                    break;
+                case Key.D4:
+                    MainScene.Stage = Scene.LabaStage.Laba4;
+                    break;
+                case Key.D5:
+                    MainScene.Stage = Scene.LabaStage.Laba5;
+                    break;
+                default:
+                    break;
+            }
         }
 
         private void MainWindow_MouseMove(object sender, MouseEventArgs e)
@@ -160,11 +186,7 @@ namespace ObjVisualizer
                        MainScene.Camera.Radius * (float)Math.Sin(MainScene.Camera.CameraPhi) * (float)Math.Sin(MainScene.Camera.CameraZeta));
 
                 MainScene.UpdateViewMatix();
-                //MainScene.ViewMatrix = Matrix4x4.CreateLookAt(MainScene.Camera.Eye, MainScene.Camera.Target, MainScene.Camera.Up);
-                //MainScene.ProjectionMatrix = Matrix4x4.CreatePerspectiveFieldOfView(MainScene.Camera.FOV, MainScene.Camera.Aspect, MainScene.Camera.ZNear, MainScene.Camera.ZFar);
-                //MainScene.ViewPortMatrix = Matrix4x4.CreateViewport(0, 0, WindowWidth, WindowHeight, 0, 10);
 
-                // rasterizator 3000
                 var drawer = new Drawer(WindowWidth, WindowHeight, buffer, stride);
 
                 unsafe
@@ -178,48 +200,56 @@ namespace ObjVisualizer
                         var ZeroVertext = Vertexes[FaceVertexes[0] - 1];
 
                         Vector3 PoliNormal = Vector3.Zero;
-                        //Vector4 TempVertexI = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[0] - 1]);
-                        //Vector4 TempVertexJ = MainScene.GetTransformedVertex(Vertexes[FaceVertexes.Last() - 1]);
+                        if (MainScene.Stage == Scene.LabaStage.Laba1)
+                        {
+                            Vector4 TempVertexI = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[0] - 1]);
+                            Vector4 TempVertexJ = MainScene.GetTransformedVertex(Vertexes[FaceVertexes.Last() - 1]);
 
-                        //if ((int)TempVertexI.X > 0 && (int)TempVertexJ.X > 0 &&
-                        //            (int)TempVertexI.Y > 0 && (int)TempVertexJ.Y > 0 &&
-                        //            (int)TempVertexI.X < WindowWidth && (int)TempVertexJ.X < WindowWidth &&
-                        //            (int)TempVertexI.Y < WindowHeight && (int)TempVertexJ.Y < WindowHeight)
-                        //{
-                        //    DrawLine((int)TempVertexI.X, (int)TempVertexI.Y, (int)TempVertexJ.X, (int)TempVertexJ.Y,
-                        //        pixels, stride);
-                        //}
+                            if ((int)TempVertexI.X > 0 && (int)TempVertexJ.X > 0 &&
+                                        (int)TempVertexI.Y > 0 && (int)TempVertexJ.Y > 0 &&
+                                        (int)TempVertexI.X < WindowWidth && (int)TempVertexJ.X < WindowWidth &&
+                                        (int)TempVertexI.Y < WindowHeight && (int)TempVertexJ.Y < WindowHeight)
+                            {
+                                DrawLine((int)TempVertexI.X, (int)TempVertexI.Y, (int)TempVertexJ.X, (int)TempVertexJ.Y,
+                                    pixels, stride);
+                            }
 
-                        //for (int i = 0; i < FaceVertexes.Count - 1; i++)
-                        //{
-                        //    TempVertexI = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i] - 1] );
-                        //    TempVertexJ = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i + 1] - 1]);
+                            for (int i = 0; i < FaceVertexes.Count - 1; i++)
+                            {
+                                TempVertexI = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i] - 1]);
+                                TempVertexJ = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i + 1] - 1]);
 
-                        //    if ((int)TempVertexI.X > 0 && (int)TempVertexJ.X > 0 &&
-                        //        (int)TempVertexI.Y > 0 && (int)TempVertexJ.Y > 0 &&
-                        //        (int)TempVertexI.X < WindowWidth && (int)TempVertexJ.X < WindowWidth &&
-                        //        (int)TempVertexI.Y < WindowHeight && (int)TempVertexJ.Y < WindowHeight)
-                        //    {
-                        //        DrawLine((int)TempVertexI.X, (int)TempVertexI.Y, (int)TempVertexJ.X, (int)TempVertexJ.Y,
-                        //            pixels, stride);
-                        //    }
-                        //}
+                                if ((int)TempVertexI.X > 0 && (int)TempVertexJ.X > 0 &&
+                                    (int)TempVertexI.Y > 0 && (int)TempVertexJ.Y > 0 &&
+                                    (int)TempVertexI.X < WindowWidth && (int)TempVertexJ.X < WindowWidth &&
+                                    (int)TempVertexI.Y < WindowHeight && (int)TempVertexJ.Y < WindowHeight)
+                                {
+                                    DrawLine((int)TempVertexI.X, (int)TempVertexI.Y, (int)TempVertexJ.X, (int)TempVertexJ.Y,
+                                        pixels, stride);
+                                }
+                            }
+                        }
+
                         for (int i = 0; i < FaceNormales.Count; i++)
                         {
                             PoliNormal += Normales[FaceNormales[i] - 1];
                         }
-
-                        if (Vector3.Dot(PoliNormal / FaceNormales.Count, -new Vector3(Vertexes[FaceVertexes[0] - 1].X,
-                            Vertexes[FaceVertexes[0] - 1].Y, Vertexes[FaceVertexes[0] - 1].Z) + MainScene.Camera.Eye) > 0)
+                        if (MainScene.Stage == Scene.LabaStage.Laba2)
                         {
-                            // RASTRIZATION
-                            var triangle = Enumerable.Range(0, 3)
-                                .Select(i => MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i] - 1]))
-                                .ToList();
-                            drawer.Rasterize(triangle);
+                            if (Vector3.Dot(PoliNormal / FaceNormales.Count, -new Vector3(Vertexes[FaceVertexes[0] - 1].X,
+                          Vertexes[FaceVertexes[0] - 1].Y, Vertexes[FaceVertexes[0] - 1].Z) + MainScene.Camera.Eye) > 0)
+                            {
+                                // RASTRIZATION
+                                var triangle = Enumerable.Range(0, 3)
+                                    .Select(i => MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i] - 1]))
+                                    .ToList();
+                                drawer.Rasterize(triangle);
 
 
+                            }
                         }
+
+
                     });
                 }
 
