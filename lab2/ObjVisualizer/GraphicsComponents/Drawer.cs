@@ -8,10 +8,12 @@ namespace ObjVisualizer.GraphicsComponents
     {
         private readonly int _width = width;
         private readonly int _height = height;
+      
+        private readonly Random Random = new();
 
-        private readonly List<List<float>> ZBuffer = Enumerable.Range(0, height)
-    .Select(_ => Enumerable.Repeat(float.MaxValue, width).ToList())
-    .ToList();
+        private readonly List<List<double>> ZBuffer = Enumerable.Range(0, height)
+            .Select(_ => Enumerable.Repeat(double.MaxValue, width).ToList())
+            .ToList();
 
         private readonly IntPtr Buffer = drawBuffer;
 
@@ -20,14 +22,7 @@ namespace ObjVisualizer.GraphicsComponents
         private Random random = new Random();
         public unsafe void Rasterize(IList<Vector4> vertices, IList<Vector4> preProjection)
         {
-            // uncomment after triangulation implemented
-            /*            foreach (var triangle in GetTriangles(vertices))
-                        {
-                            RasterizeTriangle(triangle);
-                        }*/
-
-
-            MyRasterizeTriangle(new(
+            RasterizeTriangle(new(
                 new(vertices[0].X, vertices[0].Y, vertices[0].Z),
                 new(vertices[1].X, vertices[1].Y, vertices[1].Z),
                 new(vertices[2].X, vertices[2].Y, vertices[2].Z)),
@@ -148,20 +143,9 @@ namespace ObjVisualizer.GraphicsComponents
                     line.Left.X < _width && line.Left.Y < _height &&
                     line.Right.X < _width && line.Right.Y < _height)
                 {
-                    DrawLine(line.Left, line.Right, (byte*)Buffer.ToPointer(), color);
+                    DrawLine(line.Left, line.Right, (byte*)Buffer.ToPointer(), Color.White);
                 }
             }
-
-            /*foreach (var line in triangle.GetVerticalLines())
-            {
-                if (line.Left.X > 0 && line.Left.Y > 0 &&
-                    line.Right.X > 0 && line.Right.Y > 0 &&
-                    line.Left.X < _width && line.Left.Y < _height &&
-                    line.Right.X < _width && line.Right.Y < _height)
-                {
-                    DrawLine(line.Left, line.Right, (byte*)Buffer.ToPointer());
-                }
-            }*/
         }
 
         private IEnumerable<Triangle> GetTriangles(IEnumerable<Vector4> points)
@@ -169,14 +153,14 @@ namespace ObjVisualizer.GraphicsComponents
             throw new NotImplementedException();
         }
 
-        public unsafe void DrawLine(Vector3 p1, Vector3 p2, byte* data, Color rgb)
+        public unsafe void DrawLine(Vector3 p1, Vector3 p2, byte* data, Color color)
         {
             int x1 = (int)p1.X;
             int y1 = (int)p1.Y;
-            int z1 = (int)p1.Z * 100;
+            var z1 = p1.Z;
             int x2 = (int)p2.X;
             int y2 = (int)p2.Y;
-            int z2 = (int)p2.Z * 100;
+            var z2 = p2.Z;
 
             var zDiff = z1 - z2;
             var distance = Math.Sqrt(Math.Pow(x1 - x2, 2) + Math.Pow(y1 - y2, 2));
@@ -216,21 +200,15 @@ namespace ObjVisualizer.GraphicsComponents
                     col = x;
                 }
 
-
-                byte* pixelPtr = data + row * Stride + col * 3;
-
-                if (ZBuffer[row][col] >= z2 + zStep * (x - p1.X))
+                if (ZBuffer[row][col] > z1 + zStep * (x - x1))
                 {
-                    //ZBuffer[row][col] = z2 + zStep * (x - p1.X);
+                    byte* pixelPtr = data + row * Stride + col * 3;
 
-                    *pixelPtr++ = rgb.R;
-                    *pixelPtr++ = rgb.G;
-                    *pixelPtr = rgb.R;
-                }
-                else
-                {
+                    ZBuffer[row][col] = z1 + zStep * (x - x1);
 
-
+                    *pixelPtr++ = color.B;
+                    *pixelPtr++ = color.G;
+                    *pixelPtr = color.R;
                 }
 
                 error -= dy;
