@@ -34,19 +34,7 @@ namespace ObjVisualizer.GraphicsComponents
 
         private unsafe void RasterizeTriangle(Triangle triangle)
         {
-            foreach(var line in triangle.GetHorizontalLines())
-            {
-                if (line.Left.X > 0 && line.Left.Y > 0 &&
-                    line.Right.X > 0 && line.Right.Y > 0 &&
-                    line.Left.X < _width && line.Left.Y < _height &&
-                    line.Right.X < _width && line.Right.Y < _height)
-                {
-                    DrawLine((int)line.Left.X, (int)line.Left.Y, (int)line.Right.X, (int)line.Right.Y, 
-                        (byte*)Buffer.ToPointer());
-                }
-            }
-
-            foreach (var line in triangle.GetVerticalLines())
+            foreach (var line in triangle.GetHorizontalLines())
             {
                 if (line.Left.X > 0 && line.Left.Y > 0 &&
                     line.Right.X > 0 && line.Right.Y > 0 &&
@@ -57,6 +45,18 @@ namespace ObjVisualizer.GraphicsComponents
                         (byte*)Buffer.ToPointer());
                 }
             }
+
+/*            foreach (var line in triangle.GetVerticalLines())
+            {
+                if (line.Left.X > 0 && line.Left.Y > 0 &&
+                    line.Right.X > 0 && line.Right.Y > 0 &&
+                    line.Left.X < _width && line.Left.Y < _height &&
+                    line.Right.X < _width && line.Right.Y < _height)
+                {
+                    DrawLine((int)line.Left.X, (int)line.Left.Y, (int)line.Right.X, (int)line.Right.Y,
+                        (byte*)Buffer.ToPointer());
+                }
+            }*/
         }
 
         private IEnumerable<Triangle> GetTriangles(IEnumerable<Vector4> points)
