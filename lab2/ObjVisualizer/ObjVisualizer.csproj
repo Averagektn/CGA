@@ -10,10 +10,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Objects\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Update="Objects\Donut.obj">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -23,10 +19,13 @@
     <None Update="Objects\Shrek.obj">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Objects\SM_Ship01A_02_OBJ.obj">
+    <None Update="Objects\Ship.obj">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Objects\teapot.obj">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Objects\Test.obj">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
