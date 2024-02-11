@@ -210,7 +210,10 @@ namespace ObjVisualizer
                                 }
                             }
 
-                            //drawer.Rasterize(Vertexes.Select(v => MainScene.GetTransformedVertex(v)).ToList());
+                            var triangle = Enumerable.Range(0, 3)
+                                .Select(i => MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i] - 1]))
+                                .ToList();
+                            drawer.Rasterize(triangle);
                         }
                     });
                 }

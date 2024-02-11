@@ -2,9 +2,9 @@
 
 namespace ObjVisualizer.Data
 {
-    internal readonly struct LineSegment(Vector3 left, Vector3 right)
+    internal  struct LineSegment(Vector3 left, Vector3 right)
     {
-        public readonly Vector3 Left = left;
-        public readonly Vector3 Right = right;
+        public  Vector3 Left = left;
+        public  Vector3 Right = right;
     }
 }

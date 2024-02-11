@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using System.Windows.Media.Media3D;
 
 namespace ObjVisualizer.Data
 {
@@ -8,20 +9,6 @@ namespace ObjVisualizer.Data
         public readonly Vector3 B = b;
         public readonly Vector3 C = c;
 
-        public IEnumerable<LineSegment> GetVerticalLines()
-        {
-            float minX = Math.Min(Math.Min(A.X, B.X), C.X);
-            float maxX = Math.Max(Math.Max(A.X, B.X), C.X);
-
-            for (float x = minX; x <= maxX; x += 1f)
-            {
-                Vector3 start = GetIntersectionPoint(x);
-                Vector3 end = GetIntersectionPoint(x, true);
-
-                yield return new LineSegment(start, end);
-            }
-        }
-
         public IEnumerable<LineSegment> GetHorizontalLines()
         {
             float minY = Math.Min(Math.Min(A.Y, B.Y), C.Y);
@@ -29,26 +16,38 @@ namespace ObjVisualizer.Data
 
             for (float y = minY; y <= maxY; y += 1f)
             {
-                Vector3 start = GetIntersectionPoint(y);
-                Vector3 end = GetIntersectionPoint(y, true);
-
-                yield return new LineSegment(start, end);
+                yield return FindIntersectingSegment(A, B, C, y);
             }
         }
 
-        private Vector3 GetIntersectionPoint(float y, bool reverse = false)
+        public static LineSegment FindIntersectingSegment(Vector3 point1, Vector3 point2, Vector3 point3, float y)
         {
-            Vector3 p1 = reverse ? B : A;
-            Vector3 p2 = C;
+            Vector3[] trianglePoints = { point1, point2, point3 };
+            LineSegment intersectingSegment = new LineSegment(Vector3.Zero, Vector3.Zero);
 
-            float t = (y - p1.Y) / (p2.Y - p1.Y);
+            for (int i = 0; i < 3; i++)
+            {
+                Vector3 currentPoint = trianglePoints[i];
+                Vector3 nextPoint = trianglePoints[(i + 1) % 3];
 
-            t = Math.Clamp(t, 0f, 1f);
+                if ((currentPoint.Y <= y && nextPoint.Y >= y) || (currentPoint.Y >= y && nextPoint.Y <= y))
+                {
+                    float t = (y - currentPoint.Y) / (nextPoint.Y - currentPoint.Y);
+                    Vector3 intersectionPoint = currentPoint + t * (nextPoint - currentPoint);
 
-            float x = p1.X + t * (p2.X - p1.X);
-            float z = p1.Z + t * (p2.Z - p1.Z);
+                    if (intersectingSegment.Left == Vector3.Zero)
+                    {
+                        intersectingSegment.Left = intersectionPoint;
+                    }
+                    else
+                    {
+                        intersectingSegment.Right = intersectionPoint;
+                        break;
+                    }
+                }
+            }
 
-            return new Vector3(x, y, z);
+            return intersectingSegment;
         }
     }
 }
