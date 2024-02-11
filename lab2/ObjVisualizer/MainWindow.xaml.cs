@@ -168,7 +168,7 @@ namespace ObjVisualizer
                 {
                     byte* pixels = (byte*)buffer.ToPointer();
 
-                    foreach (var face in Reader.Faces)
+                    Parallel.ForEach(Reader.Faces, face =>
                     {
                         var FaceVertexes = face.VertexIds.ToList();
                         var FaceNormales = face.NormalIds.ToList();
@@ -218,7 +218,7 @@ namespace ObjVisualizer
                                 }
                             }*/
                         }
-                    }//);
+                    });
                 }
 
                 writableBitmap.AddDirtyRect(rect);
