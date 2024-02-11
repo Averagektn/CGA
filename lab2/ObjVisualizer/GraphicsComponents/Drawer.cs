@@ -46,7 +46,7 @@ namespace ObjVisualizer.GraphicsComponents
                 }
             }
 
-/*            foreach (var line in triangle.GetVerticalLines())
+            foreach (var line in triangle.GetVerticalLines())
             {
                 if (line.Left.X > 0 && line.Left.Y > 0 &&
                     line.Right.X > 0 && line.Right.Y > 0 &&
@@ -56,7 +56,7 @@ namespace ObjVisualizer.GraphicsComponents
                     DrawLine((int)line.Left.X, (int)line.Left.Y, (int)line.Right.X, (int)line.Right.Y,
                         (byte*)Buffer.ToPointer());
                 }
-            }*/
+            }
         }
 
         private IEnumerable<Triangle> GetTriangles(IEnumerable<Vector4> points)
