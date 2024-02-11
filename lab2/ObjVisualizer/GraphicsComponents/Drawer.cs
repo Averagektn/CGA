@@ -60,34 +60,41 @@ namespace ObjVisualizer.GraphicsComponents
             throw new NotImplementedException();
         }
 
-        private unsafe void DrawLine(Vector3 p1, Vector3 p2, byte* data)
+        public unsafe void DrawLine(Vector3 p1, Vector3 p2, byte* data)
         {
-            var zDiff = p1.Z - p2.Z;
-            var distance = Math.Sqrt(Math.Pow(p1.X - p2.X, 2) + Math.Pow(p1.Y - p2.Y, 2));
+            int x1 = (int)p1.X;
+            int y1 = (int)p1.Y;
+            int z1 = (int)p1.Z;
+            int x2 = (int)p2.X;
+            int y2 = (int)p2.Y;
+            int z2 = (int)p2.Z;
+
+            var zDiff = z1 - z2;
+            var distance = Math.Sqrt(Math.Pow(x1 - x2, 2) + Math.Pow(y1 - y2, 2));
             var zStep = distance == 0 ? 0 : zDiff / distance;
 
-            bool step = Math.Abs(p2.Y - p1.Y) > Math.Abs(p2.X - p1.X);
+            bool step = Math.Abs(y2 - y1) > Math.Abs(x2 - x1);
 
             if (step)
             {
-                (p1.X, p1.Y) = (p1.Y, p1.X);
-                (p2.X, p2.Y) = (p2.Y, p2.X);
+                (x1, y1) = (y1, x1);
+                (x2, y2) = (y2, x2);
             }
 
-            if (p1.X > p2.X)
+            if (x1 > x2)
             {
-                (p1.X, p2.X) = (p2.X, p1.X);
-                (p1.Y, p2.Y) = (p2.Y, p1.Y);
+                (x1, x2) = (x2, x1);
+                (y1, y2) = (y2, y1);
             }
 
-            int dx = (int)(p2.X - p1.X);
-            int dy = (int)Math.Abs(p2.Y - p1.Y);
+            int dx = x2 - x1;
+            int dy = Math.Abs(y2 - y1);
             int error = dx / 2;
-            int ystep = (p1.Y < p2.Y) ? 1 : -1;
-            int y = (int)p1.Y;
+            int ystep = (y1 < y2) ? 1 : -1;
+            int y = y1;
             int row, col;
 
-            for (int x = (int)p1.X; x <= p2.X; x++)
+            for (int x = x1; x <= x2; x++)
             {
                 if (step)
                 {
@@ -100,15 +107,16 @@ namespace ObjVisualizer.GraphicsComponents
                     col = x;
                 }
 
+
                 byte* pixelPtr = data + row * Stride + col * 3;
 
-                if (ZBuffer[row][col] > p1.Z + zStep * (int)(x - p1.X))
+                if (ZBuffer[row][col] > z1 + zStep * (x - p1.X))
                 {
                     *pixelPtr++ = 255;
                     *pixelPtr++ = 255;
                     *pixelPtr = 255;
 
-                    ZBuffer[row][col] = (int)(p1.Z + zStep * (int)(x - p1.X));
+                    ZBuffer[row][col] = (int)(z1 + zStep * (x - p1.X));
                 }
 
 
