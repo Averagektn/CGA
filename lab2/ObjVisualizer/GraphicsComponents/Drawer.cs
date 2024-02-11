@@ -1,4 +1,5 @@
 ﻿using ObjVisualizer.Data;
+using System.Drawing;
 using System.Numerics;
 
 namespace ObjVisualizer.GraphicsComponents
@@ -8,8 +9,12 @@ namespace ObjVisualizer.GraphicsComponents
         private readonly int _width = width;
         private readonly int _height = height;
 
-        private readonly List<List<double>> ZBuffer =
-            Enumerable.Repeat(Enumerable.Repeat(double.MaxValue, width).ToList(), height).ToList();
+        private readonly Random Random = new();
+        private Color Color => Color.FromArgb(Random.Next(0, 255), Random.Next(0, 255), Random.Next(0, 255));
+
+        private readonly List<List<double>> ZBuffer = Enumerable.Range(0, height)
+            .Select(_ => Enumerable.Repeat(double.MaxValue, width).ToList())
+            .ToList();
 
         private readonly IntPtr Buffer = drawBuffer;
 
@@ -32,6 +37,7 @@ namespace ObjVisualizer.GraphicsComponents
 
         private unsafe void RasterizeTriangle(Triangle triangle, IList<Vector4> preProjection)
         {
+            var color = Color;
             foreach (var line in triangle.GetHorizontalLines())
             {
                 if (line.Left.X > 0 && line.Left.Y > 0 &&
@@ -39,7 +45,7 @@ namespace ObjVisualizer.GraphicsComponents
                     line.Left.X < _width && line.Left.Y < _height &&
                     line.Right.X < _width && line.Right.Y < _height)
                 {
-                    DrawLine(line.Left, line.Right, (byte*)Buffer.ToPointer());
+                    DrawLine(line.Left, line.Right, (byte*)Buffer.ToPointer(), color);
                 }
             }
 
@@ -60,7 +66,7 @@ namespace ObjVisualizer.GraphicsComponents
             throw new NotImplementedException();
         }
 
-        public unsafe void DrawLine(Vector3 p1, Vector3 p2, byte* data)
+        public unsafe void DrawLine(Vector3 p1, Vector3 p2, byte* data, Color color)
         {
             int x1 = (int)p1.X;
             int y1 = (int)p1.Y;
@@ -107,21 +113,18 @@ namespace ObjVisualizer.GraphicsComponents
                     col = x;
                 }
 
+                var minZ = z1 <= z2 ? z1 : z2;
+                var maxZ = z1 >= z2 ? z1 : z2;
 
-                byte* pixelPtr = data + row * Stride + col * 3;
-
-                if (ZBuffer[row][col] >= z1 + zStep * (x - p1.X))
+                if (ZBuffer[row][col] > maxZ)
                 {
-                    ZBuffer[row][col] = z1 + zStep * (x - p1.X);
+                    byte* pixelPtr = data + row * Stride + col * 3;
 
-                    *pixelPtr++ = 255;
-                    *pixelPtr++ = 255;
-                    *pixelPtr = 255;
-                }
-                else
-                {
+                    ZBuffer[row][col] = minZ;
 
-                    
+                    *pixelPtr++ = color.B;
+                    *pixelPtr++ = color.G;
+                    *pixelPtr = color.R;
                 }
 
                 error -= dy;
