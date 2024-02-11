@@ -1,5 +1,4 @@
 ﻿using System.Numerics;
-using System.Windows.Media.Media3D;
 
 namespace ObjVisualizer.Data
 {
