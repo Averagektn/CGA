@@ -31,7 +31,7 @@ namespace ObjVisualizer
 
         public MainWindow()
         {
-            Reader = ObjReader.GetObjReader("Objects\\Ship.obj");
+            Reader = ObjReader.GetObjReader("Objects\\Shrek.obj");
 
             InitializeComponent();
 
@@ -168,7 +168,7 @@ namespace ObjVisualizer
                 {
                     byte* pixels = (byte*)buffer.ToPointer();
 
-                    Parallel.ForEach(Reader.Faces, face =>
+                    foreach (var face in Reader.Faces)
                     {
                         var FaceVertexes = face.VertexIds.ToList();
                         var FaceNormales = face.NormalIds.ToList();
@@ -191,7 +191,7 @@ namespace ObjVisualizer
                                 .ToList();
                             drawer.Rasterize(triangle, PreProjection);
 
-                            Vector4 TempVertexI = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[0] - 1],out _);
+/*                            Vector4 TempVertexI = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[0] - 1],out _);
                             Vector4 TempVertexJ = MainScene.GetTransformedVertex(Vertexes[FaceVertexes.Last() - 1], out _);
 
                             if ((int)TempVertexI.X > 0 && (int)TempVertexJ.X > 0 &&
@@ -216,9 +216,9 @@ namespace ObjVisualizer
                                     DrawLine((int)TempVertexI.X, (int)TempVertexI.Y, (int)TempVertexJ.X, (int)TempVertexJ.Y,
                                         pixels, stride);
                                 }
-                            }
+                            }*/
                         }
-                    });
+                    }//);
                 }
 
                 writableBitmap.AddDirtyRect(rect);

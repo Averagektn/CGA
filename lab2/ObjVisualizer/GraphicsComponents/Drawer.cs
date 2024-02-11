@@ -8,14 +8,14 @@ namespace ObjVisualizer.GraphicsComponents
         private readonly int _width = width;
         private readonly int _height = height;
 
-        private readonly List<List<int>> ZBuffer =
-            Enumerable.Repeat(Enumerable.Repeat(int.MaxValue, width).ToList(), height).ToList();
+        private readonly List<List<double>> ZBuffer =
+            Enumerable.Repeat(Enumerable.Repeat(double.MaxValue, width).ToList(), height).ToList();
 
         private readonly IntPtr Buffer = drawBuffer;
 
         private readonly int Stride = stride;
 
-        public unsafe void Rasterize(IList<Vector4> vertices, Vector4[] preProjection)
+        public unsafe void Rasterize(IList<Vector4> vertices, IList<Vector4> preProjection)
         {
             // uncomment after triangulation implemented
             /*            foreach (var triangle in GetTriangles(vertices))
@@ -24,13 +24,13 @@ namespace ObjVisualizer.GraphicsComponents
                         }*/
 
             RasterizeTriangle(new(
-                new(vertices[0].X, vertices[0].Y, preProjection[0].Z),
-                new(vertices[1].X, vertices[1].Y, preProjection[1].Z),
-                new(vertices[2].X, vertices[2].Y, preProjection[2].Z)
-                ));
+                new(vertices[0].X, vertices[0].Y, vertices[0].Z),
+                new(vertices[1].X, vertices[1].Y, vertices[1].Z),
+                new(vertices[2].X, vertices[2].Y, vertices[2].Z)), 
+                preProjection);
         }
 
-        private unsafe void RasterizeTriangle(Triangle triangle)
+        private unsafe void RasterizeTriangle(Triangle triangle, IList<Vector4> preProjection)
         {
             foreach (var line in triangle.GetHorizontalLines())
             {
@@ -110,15 +110,19 @@ namespace ObjVisualizer.GraphicsComponents
 
                 byte* pixelPtr = data + row * Stride + col * 3;
 
-                if (ZBuffer[row][col] > z1 + zStep * (x - p1.X))
+                if (ZBuffer[row][col] >= z1 + zStep * (x - p1.X))
                 {
+                    ZBuffer[row][col] = z1 + zStep * (x - p1.X);
+
                     *pixelPtr++ = 255;
                     *pixelPtr++ = 255;
                     *pixelPtr = 255;
-
-                    ZBuffer[row][col] = (int)(z1 + zStep * (x - p1.X));
                 }
+                else
+                {
 
+                    
+                }
 
                 error -= dy;
 
