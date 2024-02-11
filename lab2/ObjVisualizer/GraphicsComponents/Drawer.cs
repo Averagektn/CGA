@@ -1,4 +1,5 @@
 ﻿using ObjVisualizer.Data;
+using System.Drawing;
 using System.Numerics;
 
 namespace ObjVisualizer.GraphicsComponents
@@ -8,13 +9,15 @@ namespace ObjVisualizer.GraphicsComponents
         private readonly int _width = width;
         private readonly int _height = height;
 
-        private readonly List<List<double>> ZBuffer =
-            Enumerable.Repeat(Enumerable.Repeat(double.MaxValue, width).ToList(), height).ToList();
+        private readonly List<List<float>> ZBuffer = Enumerable.Range(0, height)
+    .Select(_ => Enumerable.Repeat(float.MaxValue, width).ToList())
+    .ToList();
 
         private readonly IntPtr Buffer = drawBuffer;
 
         private readonly int Stride = stride;
 
+        private Random random = new Random();
         public unsafe void Rasterize(IList<Vector4> vertices, IList<Vector4> preProjection)
         {
             // uncomment after triangulation implemented
@@ -23,23 +26,129 @@ namespace ObjVisualizer.GraphicsComponents
                             RasterizeTriangle(triangle);
                         }*/
 
-            RasterizeTriangle(new(
+
+            MyRasterizeTriangle(new(
                 new(vertices[0].X, vertices[0].Y, vertices[0].Z),
                 new(vertices[1].X, vertices[1].Y, vertices[1].Z),
-                new(vertices[2].X, vertices[2].Y, vertices[2].Z)), 
+                new(vertices[2].X, vertices[2].Y, vertices[2].Z)),
                 preProjection);
+        }
+
+        private List<float> Interpolate(float i0, float d0, float i1, float d1)
+        {
+            if (i0 == i1) return new List<float>() { d0 };
+
+            var values = new List<float>();
+            float a = (d1 - d0) / (i1 - i0);
+            float d = d0;
+            for (int i = (int)i0; i < i1; i++)
+            {
+                values.Add(d);
+                d += a;
+            }
+            return values;
+        }
+
+        private unsafe void MyRasterizeTriangle(Triangle triangle, IList<Vector4> preProjection)
+        {
+            if (triangle.A.X > 0 && triangle.B.X > 0 && triangle.C.X > 0 && triangle.A.Y > 0 && triangle.B.Y > 0 && triangle.C.Y > 0
+                && triangle.A.X < _width && triangle.B.X < _width && triangle.C.X < _width && triangle.A.Y < _height && triangle.B.Y < _height && triangle.C.Y < _height)
+            {
+                Color color = Color.FromArgb(random.Next(0, 255), random.Next(0, 255), random.Next(0, 255));
+                //Color color = Color.White;
+                byte* data = (byte*)Buffer.ToPointer();
+                if (triangle.B.Y < triangle.A.Y)
+                {
+                    (triangle.B, triangle.A) = (triangle.A, triangle.B);
+                    (preProjection[1], preProjection[0]) = (preProjection[0], preProjection[1]);
+                }
+                if (triangle.C.Y < triangle.A.Y)
+                {
+                    (triangle.C, triangle.A) = (triangle.A, triangle.C);
+                    (preProjection[2], preProjection[0]) = (preProjection[2], preProjection[0]);
+                }
+                if (triangle.C.Y < triangle.B.Y)
+                {
+                    (triangle.B, triangle.C) = (triangle.C, triangle.B);
+                    (preProjection[1], preProjection[2]) = (preProjection[2], preProjection[1]);
+                }
+
+                var x01 = Interpolate((int)triangle.A.Y, triangle.A.X, (int)triangle.B.Y, triangle.B.X);
+                var x12 = Interpolate((int)triangle.B.Y, triangle.B.X, (int)triangle.C.Y, triangle.C.X);
+                var x02 = Interpolate((int)triangle.A.Y, triangle.A.X, (int)triangle.C.Y, triangle.C.X);
+
+                var z01 = Interpolate((int)triangle.A.Y, preProjection[0].Z, (int)triangle.B.Y, preProjection[1].Z);
+                var z12 = Interpolate((int)triangle.B.Y, preProjection[1].Z, (int)triangle.C.Y, preProjection[2].Z);
+                var z02 = Interpolate((int)triangle.A.Y, preProjection[0].Z, (int)triangle.C.Y, preProjection[2].Z);
+
+                x01.RemoveAt(x01.Count - 1);
+                var x012 = x01.Concat(x12).ToList();
+                z01.RemoveAt(z01.Count - 1);
+                var z012 = z01.Concat(z12).ToList();
+
+                var m = (int)Math.Floor(x012.Count / 2.0);
+                List<float> x_left;
+                List<float> x_right;
+                List<float> z_left;
+                List<float> z_right;
+                if (x02[m] < x012[m])
+                {
+                    (x_left, x_right) = (x02, x012);
+                    (z_left, z_right) = (z02, z012);
+                }
+                else
+                {
+                    (x_left, x_right) = (x012, x02);
+                    (z_left, z_right) = (z012, z02);
+
+                }
+
+                for (int y = (int)triangle.A.Y; y < triangle.C.Y; y++)
+                {
+                    var index = (int)(y - triangle.A.Y);
+                    if (index < x_left.Count && index < x_right.Count)
+                    {
+                        var xl = (int)x_left[index];
+                        var xr = (int)x_right[index];
+                        var zl = z_left[index];
+                        var zr = z_right[index];
+                        var zscan = Interpolate(xl, zl, xr, zr);
+                        for (int x = xl; x < xr; x++)
+                        {
+                            var z = zscan[x - xl];
+                            if (z < ZBuffer[y][x])
+                            {
+                                ZBuffer[y][x] = z;
+                                byte* pixelPtr = data + y * Stride + x * 3;
+                                *pixelPtr++ = color.R;
+                                *pixelPtr++ = color.G;
+                                *pixelPtr = color.B;
+                            }
+
+
+                        }
+
+                    }
+
+
+                }
+            }
+
         }
 
         private unsafe void RasterizeTriangle(Triangle triangle, IList<Vector4> preProjection)
         {
+            Color color = Color.FromArgb(random.Next(0, 255), random.Next(0, 255), random.Next(0, 255));
+            //if (preProjection[0].Z>0 && preProjection[1].Z > 0 && preProjection[2].Z > 0)
             foreach (var line in triangle.GetHorizontalLines())
             {
+
                 if (line.Left.X > 0 && line.Left.Y > 0 &&
                     line.Right.X > 0 && line.Right.Y > 0 &&
                     line.Left.X < _width && line.Left.Y < _height &&
                     line.Right.X < _width && line.Right.Y < _height)
                 {
-                    DrawLine(line.Left, line.Right, (byte*)Buffer.ToPointer());
+                    DrawLine(line.Left, line.Right, (byte*)Buffer.ToPointer(), color);
                 }
             }
 
@@ -60,14 +169,14 @@ namespace ObjVisualizer.GraphicsComponents
             throw new NotImplementedException();
         }
 
-        public unsafe void DrawLine(Vector3 p1, Vector3 p2, byte* data)
+        public unsafe void DrawLine(Vector3 p1, Vector3 p2, byte* data, Color rgb)
         {
             int x1 = (int)p1.X;
             int y1 = (int)p1.Y;
-            int z1 = (int)p1.Z;
+            int z1 = (int)p1.Z * 100;
             int x2 = (int)p2.X;
             int y2 = (int)p2.Y;
-            int z2 = (int)p2.Z;
+            int z2 = (int)p2.Z * 100;
 
             var zDiff = z1 - z2;
             var distance = Math.Sqrt(Math.Pow(x1 - x2, 2) + Math.Pow(y1 - y2, 2));
@@ -110,18 +219,18 @@ namespace ObjVisualizer.GraphicsComponents
 
                 byte* pixelPtr = data + row * Stride + col * 3;
 
-                if (ZBuffer[row][col] >= z1 + zStep * (x - p1.X))
+                if (ZBuffer[row][col] >= z2 + zStep * (x - p1.X))
                 {
-                    ZBuffer[row][col] = z1 + zStep * (x - p1.X);
+                    //ZBuffer[row][col] = z2 + zStep * (x - p1.X);
 
-                    *pixelPtr++ = 255;
-                    *pixelPtr++ = 255;
-                    *pixelPtr = 255;
+                    *pixelPtr++ = rgb.R;
+                    *pixelPtr++ = rgb.G;
+                    *pixelPtr = rgb.R;
                 }
                 else
                 {
 
-                    
+
                 }
 
                 error -= dy;

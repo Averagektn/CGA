@@ -63,7 +63,7 @@ namespace ObjVisualizer.GraphicsComponents
 
         public void UpdateViewMatrix()
         {
-            ViewMatrix = MatrixOperator.GetViewMatrix(Camera);
+            ViewMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewMatrix(Camera));
         }
 
         //public void UpdateModelMatrix()
