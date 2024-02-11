@@ -161,6 +161,7 @@ namespace ObjVisualizer
 
                 MainScene.UpdateViewMatix();
 
+                // rasterizator 3000
                 var drawer = new Drawer(WindowWidth, WindowHeight, buffer, stride);
 
                 unsafe
@@ -183,6 +184,12 @@ namespace ObjVisualizer
                         if (Vector3.Dot(PoliNormal / FaceNormales.Count, -new Vector3(Vertexes[FaceVertexes[0] - 1].X,
                             Vertexes[FaceVertexes[0] - 1].Y, Vertexes[FaceVertexes[0] - 1].Z) + MainScene.Camera.Eye) > 0)
                         {
+                            // RASTRIZATION
+                            var triangle = Enumerable.Range(0, 3)
+                                .Select(i => MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i] - 1]))
+                                .ToList();
+                            drawer.Rasterize(triangle);
+
                             Vector4 TempVertexI = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[0] - 1]);
                             Vector4 TempVertexJ = MainScene.GetTransformedVertex(Vertexes[FaceVertexes.Last() - 1]);
 
@@ -209,8 +216,6 @@ namespace ObjVisualizer
                                         pixels, stride);
                                 }
                             }
-
-                            //drawer.Rasterize(Vertexes.Select(v => MainScene.GetTransformedVertex(v)).ToList());
                         }
                     });
                 }
@@ -268,8 +273,8 @@ namespace ObjVisualizer
                 byte* pixelPtr = data + var1 * stride + var2 * 3;
 
                 *pixelPtr++ = 255;
-                *pixelPtr++ = 255;
-                *pixelPtr = 255;
+                *pixelPtr++ = 0;
+                *pixelPtr = 0;
 
                 error -= dy;
 
