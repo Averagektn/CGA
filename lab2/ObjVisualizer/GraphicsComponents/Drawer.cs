@@ -20,13 +20,12 @@ namespace ObjVisualizer.GraphicsComponents
         private readonly int Stride = stride;
 
         private Random random = new Random();
-        public unsafe void Rasterize(IList<Vector4> vertices, IList<Vector4> preProjection)
+        public unsafe void Rasterize(IList<Vector4> vertices)
         {
-            RasterizeTriangle(new(
+            MyRasterizeTriangle(new(
                 new(vertices[0].X, vertices[0].Y, vertices[0].Z),
                 new(vertices[1].X, vertices[1].Y, vertices[1].Z),
-                new(vertices[2].X, vertices[2].Y, vertices[2].Z)),
-                preProjection);
+                new(vertices[2].X, vertices[2].Y, vertices[2].Z)));
         }
 
         private List<float> Interpolate(float i0, float d0, float i1, float d1)
@@ -44,7 +43,7 @@ namespace ObjVisualizer.GraphicsComponents
             return values;
         }
 
-        private unsafe void MyRasterizeTriangle(Triangle triangle, IList<Vector4> preProjection)
+        private unsafe void MyRasterizeTriangle(Triangle triangle)
         {
             if (triangle.A.X > 0 && triangle.B.X > 0 && triangle.C.X > 0 && triangle.A.Y > 0 && triangle.B.Y > 0 && triangle.C.Y > 0
                 && triangle.A.X < _width && triangle.B.X < _width && triangle.C.X < _width && triangle.A.Y < _height && triangle.B.Y < _height && triangle.C.Y < _height)
@@ -55,26 +54,23 @@ namespace ObjVisualizer.GraphicsComponents
                 if (triangle.B.Y < triangle.A.Y)
                 {
                     (triangle.B, triangle.A) = (triangle.A, triangle.B);
-                    (preProjection[1], preProjection[0]) = (preProjection[0], preProjection[1]);
                 }
                 if (triangle.C.Y < triangle.A.Y)
                 {
                     (triangle.C, triangle.A) = (triangle.A, triangle.C);
-                    (preProjection[2], preProjection[0]) = (preProjection[2], preProjection[0]);
                 }
                 if (triangle.C.Y < triangle.B.Y)
                 {
                     (triangle.B, triangle.C) = (triangle.C, triangle.B);
-                    (preProjection[1], preProjection[2]) = (preProjection[2], preProjection[1]);
                 }
 
-                var x01 = Interpolate((int)triangle.A.Y, triangle.A.X, (int)triangle.B.Y, triangle.B.X);
-                var x12 = Interpolate((int)triangle.B.Y, triangle.B.X, (int)triangle.C.Y, triangle.C.X);
-                var x02 = Interpolate((int)triangle.A.Y, triangle.A.X, (int)triangle.C.Y, triangle.C.X);
+                var x01 = Interpolate(triangle.A.Y, triangle.A.X,triangle.B.Y, triangle.B.X);
+                var x12 = Interpolate(triangle.B.Y, triangle.B.X,triangle.C.Y, triangle.C.X);
+                var x02 = Interpolate(triangle.A.Y, triangle.A.X,triangle.C.Y, triangle.C.X);
 
-                var z01 = Interpolate((int)triangle.A.Y, preProjection[0].Z, (int)triangle.B.Y, preProjection[1].Z);
-                var z12 = Interpolate((int)triangle.B.Y, preProjection[1].Z, (int)triangle.C.Y, preProjection[2].Z);
-                var z02 = Interpolate((int)triangle.A.Y, preProjection[0].Z, (int)triangle.C.Y, preProjection[2].Z);
+                var z01 = Interpolate(triangle.A.Y, triangle.A.Z,triangle.B.Y, triangle.B.Z);
+                var z12 = Interpolate(triangle.B.Y, triangle.B.Z,triangle.C.Y, triangle.C.Z);
+                var z02 = Interpolate(triangle.A.Y, triangle.A.Z,triangle.C.Y, triangle.C.Z);
 
                 x01.RemoveAt(x01.Count - 1);
                 var x012 = x01.Concat(x12).ToList();
@@ -131,7 +127,7 @@ namespace ObjVisualizer.GraphicsComponents
 
         }
 
-        private unsafe void RasterizeTriangle(Triangle triangle, IList<Vector4> preProjection)
+        private unsafe void RasterizeTriangle(Triangle triangle)
         {
             Color color = Color.FromArgb(random.Next(0, 255), random.Next(0, 255), random.Next(0, 255));
             //if (preProjection[0].Z>0 && preProjection[1].Z > 0 && preProjection[2].Z > 0)

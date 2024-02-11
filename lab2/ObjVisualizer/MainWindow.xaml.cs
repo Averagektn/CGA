@@ -178,8 +178,8 @@ namespace ObjVisualizer
                         var ZeroVertext = Vertexes[FaceVertexes[0] - 1];
 
                         Vector3 PoliNormal = Vector3.Zero;
-                        //Vector4 TempVertexI = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[0] - 1], out _);
-                        //Vector4 TempVertexJ = MainScene.GetTransformedVertex(Vertexes[FaceVertexes.Last() - 1], out _);
+                        //Vector4 TempVertexI = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[0] - 1]);
+                        //Vector4 TempVertexJ = MainScene.GetTransformedVertex(Vertexes[FaceVertexes.Last() - 1]);
 
                         //if ((int)TempVertexI.X > 0 && (int)TempVertexJ.X > 0 &&
                         //            (int)TempVertexI.Y > 0 && (int)TempVertexJ.Y > 0 &&
@@ -192,8 +192,8 @@ namespace ObjVisualizer
 
                         //for (int i = 0; i < FaceVertexes.Count - 1; i++)
                         //{
-                        //    TempVertexI = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i] - 1], out _);
-                        //    TempVertexJ = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i + 1] - 1], out _);
+                        //    TempVertexI = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i] - 1] );
+                        //    TempVertexJ = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i + 1] - 1]);
 
                         //    if ((int)TempVertexI.X > 0 && (int)TempVertexJ.X > 0 &&
                         //        (int)TempVertexI.Y > 0 && (int)TempVertexJ.Y > 0 &&
@@ -215,9 +215,9 @@ namespace ObjVisualizer
                             var PreProjection = new Vector4[3];
                             // RASTRIZATION
                             var triangle = Enumerable.Range(0, 3)
-                                .Select(i => MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i] - 1], out PreProjection[i]))
+                                .Select(i => MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i] - 1]))
                                 .ToList();
-                            drawer.Rasterize(triangle, PreProjection);
+                            drawer.Rasterize(triangle);
 
                            
                         }
