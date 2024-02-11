@@ -14,11 +14,23 @@ namespace ObjVisualizer.Data
             float minY = Math.Min(Math.Min(A.Y, B.Y), C.Y);
             float maxY = Math.Max(Math.Max(A.Y, B.Y), C.Y);
 
-            for (float y = minY; y <= maxY; y += 1f)
+            for (float y = minY; y <= maxY; y += 0.1f)
             {
                 yield return FindIntersectingSegment(A, B, C, y);
             }
         }
+
+        public IEnumerable<LineSegment> GetVerticalLines()
+        {
+            float minX = Math.Min(Math.Min(A.X, B.X), C.X);
+            float maxX = Math.Max(Math.Max(A.X, B.X), C.X);
+
+            for (float x = minX; x <= maxX; x += 0.1f)
+            {
+                yield return FindIntersectingSegment(A, B, C, x);
+            }
+        }
+
 
         public static LineSegment FindIntersectingSegment(Vector3 point1, Vector3 point2, Vector3 point3, float y)
         {

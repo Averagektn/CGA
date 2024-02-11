@@ -183,7 +183,7 @@ namespace ObjVisualizer
                         if (Vector3.Dot(PoliNormal / FaceNormales.Count, new Vector3(Vertexes[FaceVertexes[0] - 1].X,
                             Vertexes[FaceVertexes[0] - 1].Y, Vertexes[FaceVertexes[0] - 1].Z) + MainScene.Camera.Eye) > 0)
                         {
-                            Vector4 TempVertexI = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[0] - 1]);
+/*                            Vector4 TempVertexI = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[0] - 1]);
                             Vector4 TempVertexJ = MainScene.GetTransformedVertex(Vertexes[FaceVertexes.Last() - 1]);
 
                             if ((int)TempVertexI.X > 0 && (int)TempVertexJ.X > 0 &&
@@ -208,7 +208,7 @@ namespace ObjVisualizer
                                     DrawLine((int)TempVertexI.X, (int)TempVertexI.Y, (int)TempVertexJ.X, (int)TempVertexJ.Y,
                                         pixels, stride);
                                 }
-                            }
+                            }*/
 
                             var triangle = Enumerable.Range(0, 3)
                                 .Select(i => MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i] - 1]))
