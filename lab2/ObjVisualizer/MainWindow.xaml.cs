@@ -1,5 +1,4 @@
-﻿using ObjVisualizer.Data;
-using ObjVisualizer.GraphicsComponents;
+﻿using ObjVisualizer.GraphicsComponents;
 using ObjVisualizer.MouseHandlers;
 using ObjVisualizer.Parser;
 using System.Numerics;
@@ -9,7 +8,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using Vector = System.Windows.Vector;
 
 namespace ObjVisualizer
 {
@@ -145,8 +143,7 @@ namespace ObjVisualizer
         {
             var Vertexes = Reader.Vertices.ToList();
             var Normales = Reader.VertexNormals.ToList();
-            var Faces = Reader.Faces.ToList();
-           
+
             while (true)
             {
                 var writableBitmap = new WriteableBitmap(WindowWidth, WindowHeight, 96, 96, PixelFormats.Bgr24, null);
@@ -183,7 +180,7 @@ namespace ObjVisualizer
                             PoliNormal += Normales[FaceNormales[i] - 1];
                         }
 
-                        if (Vector3.Dot(PoliNormal / FaceNormales.Count, new Vector3(Vertexes[FaceVertexes[0] - 1].X,
+                        if (Vector3.Dot(PoliNormal / FaceNormales.Count, -new Vector3(Vertexes[FaceVertexes[0] - 1].X,
                             Vertexes[FaceVertexes[0] - 1].Y, Vertexes[FaceVertexes[0] - 1].Z) + MainScene.Camera.Eye) > 0)
                         {
                             Vector4 TempVertexI = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[0] - 1]);
@@ -231,7 +228,6 @@ namespace ObjVisualizer
                 await Task.Delay(1);
             }
         }
-
 
         public unsafe void DrawLine(int x0, int y0, int x1, int y1, byte* data, int stride)
         {
