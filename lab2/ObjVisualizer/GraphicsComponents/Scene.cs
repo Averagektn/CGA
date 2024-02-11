@@ -50,9 +50,10 @@ namespace ObjVisualizer.GraphicsComponents
             ViewPortMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewPortMatrix(NewWindowWidth, NewWindowHeight));
         }
 
-        public Vector4 GetTransformedVertex(Vector4 Vertex)
+        public Vector4 GetTransformedVertex(Vector4 Vertex, out Vector4 PreProjection)
         {
             Vertex = Vector4.Transform(Vertex, ViewMatrix);
+            PreProjection = Vertex;
             Vertex = Vector4.Transform(Vertex, ProjectionMatrix);
             Vertex = Vector4.Divide(Vertex, Vertex.W);
             Vertex = Vector4.Transform(Vertex, ViewPortMatrix);

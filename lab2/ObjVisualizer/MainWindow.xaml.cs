@@ -31,7 +31,7 @@ namespace ObjVisualizer
 
         public MainWindow()
         {
-            Reader = ObjReader.GetObjReader("Objects\\Shrek.obj");
+            Reader = ObjReader.GetObjReader("Objects\\Ship.obj");
 
             InitializeComponent();
 
@@ -184,14 +184,15 @@ namespace ObjVisualizer
                         if (Vector3.Dot(PoliNormal / FaceNormales.Count, -new Vector3(Vertexes[FaceVertexes[0] - 1].X,
                             Vertexes[FaceVertexes[0] - 1].Y, Vertexes[FaceVertexes[0] - 1].Z) + MainScene.Camera.Eye) > 0)
                         {
+                            var PreProjection = new Vector4[3];
                             // RASTRIZATION
                             var triangle = Enumerable.Range(0, 3)
-                                .Select(i => MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i] - 1]))
+                                .Select(i => MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i] - 1], out PreProjection[i]))
                                 .ToList();
-                            drawer.Rasterize(triangle);
+                            drawer.Rasterize(triangle, PreProjection);
 
-                            Vector4 TempVertexI = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[0] - 1]);
-                            Vector4 TempVertexJ = MainScene.GetTransformedVertex(Vertexes[FaceVertexes.Last() - 1]);
+                            Vector4 TempVertexI = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[0] - 1],out _);
+                            Vector4 TempVertexJ = MainScene.GetTransformedVertex(Vertexes[FaceVertexes.Last() - 1], out _);
 
                             if ((int)TempVertexI.X > 0 && (int)TempVertexJ.X > 0 &&
                                         (int)TempVertexI.Y > 0 && (int)TempVertexJ.Y > 0 &&
@@ -204,8 +205,8 @@ namespace ObjVisualizer
 
                             for (int i = 0; i < FaceVertexes.Count - 1; i++)
                             {
-                                TempVertexI = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i] - 1]);
-                                TempVertexJ = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i + 1] - 1]);
+                                TempVertexI = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i] - 1], out _);
+                                TempVertexJ = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i + 1] - 1], out _);
 
                                 if ((int)TempVertexI.X > 0 && (int)TempVertexJ.X > 0 &&
                                     (int)TempVertexI.Y > 0 && (int)TempVertexJ.Y > 0 &&
