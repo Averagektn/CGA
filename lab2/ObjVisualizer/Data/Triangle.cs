@@ -2,13 +2,13 @@
 
 namespace ObjVisualizer.Data
 {
-    internal  struct Triangle(Vector3 a, Vector3 b, Vector3 c)
+    internal struct Triangle(Vector3 a, Vector3 b, Vector3 c)
     {
-        public Vector3 A = a;
-        public Vector3 B = b;
-        public Vector3 C = c;
+        public Vector3 A { get; set; } = a;
+        public Vector3 B { get; set; } = b;
+        public Vector3 C { get; set; } = c;
 
-        public IEnumerable<LineSegment> GetHorizontalLines()
+        public readonly IEnumerable<LineSegment> GetHorizontalLines()
         {
             float minY = Math.Min(Math.Min(A.Y, B.Y), C.Y);
             float maxY = Math.Max(Math.Max(A.Y, B.Y), C.Y);
@@ -19,7 +19,7 @@ namespace ObjVisualizer.Data
             }
         }
 
-        public IEnumerable<LineSegment> GetVerticalLines()
+        public readonly IEnumerable<LineSegment> GetVerticalLines()
         {
             float minX = Math.Min(Math.Min(A.X, B.X), C.X);
             float maxX = Math.Max(Math.Max(A.X, B.X), C.X);
@@ -30,7 +30,7 @@ namespace ObjVisualizer.Data
             }
         }
 
-        public static LineSegment FindIntersectingSegmentX(Vector3 point1, Vector3 point2, Vector3 point3, float x)
+        public readonly LineSegment FindIntersectingSegmentX(Vector3 point1, Vector3 point2, Vector3 point3, float x)
         {
             Vector3[] trianglePoints = [point1, point2, point3];
             Vector3 leftPoint = Vector3.Zero;
@@ -61,7 +61,7 @@ namespace ObjVisualizer.Data
             return new(leftPoint, rightPoint);
         }
 
-        public static LineSegment FindIntersectingSegmentY(Vector3 point1, Vector3 point2, Vector3 point3, float y)
+        public readonly LineSegment FindIntersectingSegmentY(Vector3 point1, Vector3 point2, Vector3 point3, float y)
         {
             Vector3[] trianglePoints = [point1, point2, point3];
             Vector3 leftPoint = Vector3.Zero;

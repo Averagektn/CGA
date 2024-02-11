@@ -212,14 +212,13 @@ namespace ObjVisualizer
                         if (Vector3.Dot(PoliNormal / FaceNormales.Count, -new Vector3(Vertexes[FaceVertexes[0] - 1].X,
                             Vertexes[FaceVertexes[0] - 1].Y, Vertexes[FaceVertexes[0] - 1].Z) + MainScene.Camera.Eye) > 0)
                         {
-                            var PreProjection = new Vector4[3];
                             // RASTRIZATION
                             var triangle = Enumerable.Range(0, 3)
                                 .Select(i => MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i] - 1]))
                                 .ToList();
                             drawer.Rasterize(triangle);
 
-                           
+
                         }
                     });
                 }
