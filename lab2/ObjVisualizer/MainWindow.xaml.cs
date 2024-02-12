@@ -266,7 +266,7 @@ namespace ObjVisualizer
                           Vertexes[FaceVertexes[0] - 1].Y, Vertexes[FaceVertexes[0] - 1].Z) + MainScene.Camera.Eye) > 0)
                             {
                                 // RASTRIZATION
-                                var triangle = Enumerable.Range(0, 3)
+                                var triangle = Enumerable.Range(0, FaceVertexes.Count)
                                     .Select(i => MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i] - 1]))
                                     .ToList();
                                 float light = MainScene.Light.CalculateLight(new Vector3(Vertexes[FaceVertexes[0]-1].X, Vertexes[FaceVertexes[0]-1].Y, Vertexes[FaceVertexes[0]-1].Z), PoliNormal);

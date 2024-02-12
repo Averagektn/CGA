@@ -19,10 +19,13 @@ namespace ObjVisualizer.GraphicsComponents
 
         public unsafe void Rasterize(IList<Vector4> vertices, Color color)
         {
-            MyRasterizeTriangle(new(
-                new(vertices[0].X, vertices[0].Y, vertices[0].Z),
-                new(vertices[1].X, vertices[1].Y, vertices[1].Z),
-                new(vertices[2].X, vertices[2].Y, vertices[2].Z)), color);
+            for (int i = 1; i < vertices.Count - 1; i++)
+            {
+                MyRasterizeTriangle(new(
+                    new(vertices[0].X, vertices[0].Y, vertices[0].Z),
+                    new(vertices[i].X, vertices[i].Y, vertices[i].Z),
+                    new(vertices[i + 1].X, vertices[i + 1].Y, vertices[i + 1].Z)), color);
+            }
         }
 
         private static List<float> Interpolate(float i0, float d0, float i1, float d1)
