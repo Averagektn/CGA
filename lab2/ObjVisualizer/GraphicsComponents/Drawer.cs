@@ -1,4 +1,5 @@
 ﻿using ObjVisualizer.Data;
+using System;
 using System.Drawing;
 using System.Numerics;
 
@@ -19,10 +20,14 @@ namespace ObjVisualizer.GraphicsComponents
 
         public unsafe void Rasterize(IList<Vector4> vertices, Color color)
         {
-            MyRasterizeTriangle(new(
+            for (int i = 1; i < vertices.Count - 1; i++)
+            {
+                MyRasterizeTriangle(new(
                 new(vertices[0].X, vertices[0].Y, vertices[0].Z),
-                new(vertices[1].X, vertices[1].Y, vertices[1].Z),
-                new(vertices[2].X, vertices[2].Y, vertices[2].Z)), color);
+                new(vertices[i].X, vertices[i].Y, vertices[i].Z),
+                new(vertices[i+1].X, vertices[i+1].Y, vertices[i+1].Z)), color);
+            }
+            
         }
 
         private static List<float> Interpolate(float i0, float d0, float i1, float d1)
@@ -48,14 +53,13 @@ namespace ObjVisualizer.GraphicsComponents
 
         private unsafe void MyRasterizeTriangle(Triangle triangle, Color color)
         {
-            if (triangle.A.X > 0 && triangle.B.X > 0 && triangle.C.X > 0 &&
-                triangle.A.Y > 0 && triangle.B.Y > 0 && triangle.C.Y > 0 &&
-                triangle.A.X < _width && triangle.B.X < _width && triangle.C.X < _width &&
-                triangle.A.Y < _height && triangle.B.Y < _height && triangle.C.Y < _height)
+            if (triangle.A.X > 0 && triangle.B.X > 0 && triangle.C.X > 0 && triangle.A.Y > 0 && triangle.B.Y > 0 && triangle.C.Y > 0
+                && triangle.A.X < _width && triangle.B.X < _width && triangle.C.X < _width && triangle.A.Y < _height && triangle.B.Y < _height && triangle.C.Y < _height)
+                //if ((triangle.A.X > 0 && triangle.A.Y > 0 && triangle.A.X < _width && triangle.A.Y < _height) ||
+                //  (triangle.B.X > 0 && triangle.B.Y > 0 && triangle.B.X < _width && triangle.B.Y < _height) ||
+                //  (triangle.C.X > 0 && triangle.C.Y > 0 && triangle.C.X < _width && triangle.C.Y < _height))
             {
-
                 byte* data = (byte*)Buffer.ToPointer();
-
                 if (triangle.B.Y < triangle.A.Y)
                 {
                     (triangle.B, triangle.A) = (triangle.A, triangle.B);
@@ -83,12 +87,10 @@ namespace ObjVisualizer.GraphicsComponents
                 var z012 = z01.Concat(z12).ToList();
 
                 var m = (int)Math.Floor(x012.Count / 2.0);
-
                 List<float> x_left;
                 List<float> x_right;
                 List<float> z_left;
                 List<float> z_right;
-
                 if (x02[m] < x012[m])
                 {
                     (x_left, x_right) = (x02, x012);
@@ -98,26 +100,35 @@ namespace ObjVisualizer.GraphicsComponents
                 {
                     (x_left, x_right) = (x012, x02);
                     (z_left, z_right) = (z012, z02);
-                }
-                var TopY = int.Max(0, (int)float.Ceiling(triangle.A.Y));
-                var BottomY = int.Min(_height, (int)float.Ceiling(triangle.C.Y));
-                for (int y = TopY; y < BottomY; y++)
-                {
-                    var index = (int)(y - triangle.A.Y);
 
-                    //if (index < x_left.Count && index < x_right.Count)
+                }
+                //int YDiffTop = 0 ;
+                //if (triangle.A.Y < 0)
+                //{
+                //    YDiffTop = 0 - (int)triangle.A.Y;
+                //}
+                //int YDiffBottom = 0;
+                //if (triangle.C.Y > _height)
+                //{
+                //    YDiffBottom= 0 - (int)triangle.C.Y;
+                //}
+                for (int y = (int)triangle.A.Y /*+ YDiffTop*/; y < triangle.C.Y /*- YDiffBottom*/; y++)
+                {
+                    //if (y < 0 || y >= _height)
+                    //    continue;
+                    var index = (int)(y - triangle.A.Y );
+                    if (index < x_left.Count && index < x_right.Count)
                     {
-                        var LeftX = int.Max(0, (int)float.Ceiling(x_left[index]));
-                        var RightX = int.Min(_width, (int)float.Ceiling(x_right[index]));
-                        //var xl = (int)x_left[index];
-                        //var xr = (int)x_right[index];
+                        var xl = (int)x_left[index];
+                        var xr = (int)x_right[index];
                         var zl = z_left[index];
                         var zr = z_right[index];
-                        var zscan = Interpolate(LeftX, zl, RightX, zr);
-
-                        for (int x = LeftX; x < RightX; x++)
+                        var zscan = Interpolate(xl, zl, xr, zr);
+                        for (int x = xl; x < xr; x++)
                         {
-                            var z = zscan[x - LeftX];
+                            if (x < 0 || x >= _width)
+                                continue;
+                            var z = zscan[x - xl];
                             if (z < ZBuffer[y][x])
                             {
                                 ZBuffer[y][x] = z;
@@ -126,8 +137,14 @@ namespace ObjVisualizer.GraphicsComponents
                                 *pixelPtr++ = color.G;
                                 *pixelPtr = color.B;
                             }
+
+
+
                         }
+
                     }
+
+
                 }
             }
         }

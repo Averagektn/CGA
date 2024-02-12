@@ -31,7 +31,7 @@ namespace ObjVisualizer
 
         public MainWindow()
         {
-            Reader = ObjReader.GetObjReader("Objects\\Ship.obj");
+            Reader = ObjReader.GetObjReader("Objects\\Shrek.obj");
 
             InitializeComponent();
 
@@ -106,8 +106,8 @@ namespace ObjVisualizer
         private void MainWindow_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
             MainScene.Camera.Radius += -e.Delta / 100;
-            if (MainScene.Camera.Radius < 0.01f)
-                MainScene.Camera.Radius = 0.01f;
+            if (MainScene.Camera.Radius < 0.1f)
+                MainScene.Camera.Radius = 0.1f;
             if (MainScene.Camera.Radius > 5*MainScene.Camera.Radius)
                 MainScene.Camera.Radius = 5 * MainScene.Camera.Radius;
 
@@ -219,7 +219,8 @@ namespace ObjVisualizer
                 {
                     byte* pixels = (byte*)buffer.ToPointer();
 
-                    Parallel.ForEach(Reader.Faces, face =>
+                    //Parallel.ForEach(Reader.Faces, face =>
+                    foreach (var face in Reader.Faces)
                     {
                         var FaceVertexes = face.VertexIds.ToList();
                         var FaceNormales = face.NormalIds.ToList();
@@ -266,7 +267,7 @@ namespace ObjVisualizer
                           Vertexes[FaceVertexes[0] - 1].Y, Vertexes[FaceVertexes[0] - 1].Z) + MainScene.Camera.Eye) > 0)
                             {
                                 // RASTRIZATION
-                                var triangle = Enumerable.Range(0, 3)
+                                var triangle = Enumerable.Range(0, FaceVertexes.Count)
                                     .Select(i => MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i] - 1]))
                                     .ToList();
                                 float light = MainScene.Light.CalculateLight(new Vector3(Vertexes[FaceVertexes[0]-1].X, Vertexes[FaceVertexes[0]-1].Y, Vertexes[FaceVertexes[0]-1].Z), PoliNormal);
@@ -277,7 +278,7 @@ namespace ObjVisualizer
                         }
 
 
-                    });
+                    }/*);*/
                 }
 
                 writableBitmap.AddDirtyRect(rect);
