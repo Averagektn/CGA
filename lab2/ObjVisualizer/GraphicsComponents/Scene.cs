@@ -15,6 +15,19 @@ namespace ObjVisualizer.GraphicsComponents
 
         private static Scene? Instance;
 
+        public PointLight Light;
+
+        public LabaStage Stage;
+
+        public enum LabaStage
+        {
+            Laba1,
+            Laba2,
+            Laba3,
+            Laba4,
+            Laba5
+        }
+
         private Matrix4x4 RotateMatrix;
         private Matrix4x4 ScaleMatrix;
         private Matrix4x4 MoveMatrix;
@@ -29,6 +42,7 @@ namespace ObjVisualizer.GraphicsComponents
             ScaleMatrix = Matrix4x4.Transpose(Matrix4x4.Identity);
             MoveMatrix = Matrix4x4.Transpose(Matrix4x4.Identity);
             Camera = new Camera(Vector3.Zero, Vector3.Zero, Vector3.Zero, 0, 0, 0, 0);
+            Light = new PointLight();
             ChangeStatus = true;
         }
 

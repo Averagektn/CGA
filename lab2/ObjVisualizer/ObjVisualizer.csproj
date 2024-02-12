@@ -22,6 +22,9 @@
     <None Update="Objects\Ship.obj">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Objects\Su-27.obj">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Objects\teapot.obj">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
