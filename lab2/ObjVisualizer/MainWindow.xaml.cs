@@ -4,10 +4,12 @@ using ObjVisualizer.Parser;
 using System.Numerics;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media.Imaging;
 using System.Windows.Input;
-using System.Windows.Threading;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Threading;
+using Color = System.Drawing.Color;
+using Point = System.Windows.Point;
 
 namespace ObjVisualizer
 {
@@ -87,7 +89,7 @@ namespace ObjVisualizer
             MainScene.Camera = new Camera(new Vector3(0, 0f, 0f), new Vector3(0, 1, 0), new Vector3(0, 0, 1),
                 WindowWidth / (float)WindowHeight, 70.0f * ((float)Math.PI / 180.0f), 10.0f, 0.1f);
 
-           
+
             //MainScene.ModelMatrix = Matrix4x4.Transpose(MatrixOperator.Scale(
             //    new Vector3(0.01f, 0.01f, 0.01f)) * MatrixOperator.RotateY(-20f * ((float)Math.PI / 180.0f))
             //    * MatrixOperator.RotateX(20f * ((float)Math.PI / 180.0f)) * MatrixOperator.Move(new Vector3(0, 0, 0)));
@@ -95,7 +97,7 @@ namespace ObjVisualizer
                         MainScene.Camera.Radius * (float)Math.Cos(MainScene.Camera.CameraPhi) * (float)Math.Sin(MainScene.Camera.CameraZeta),
                         MainScene.Camera.Radius * (float)Math.Cos(MainScene.Camera.CameraZeta),
                         MainScene.Camera.Radius * (float)Math.Sin(MainScene.Camera.CameraPhi) * (float)Math.Sin(MainScene.Camera.CameraZeta));
-            MainScene.Light = new PointLigth(MainScene.Camera.Eye.X, MainScene.Camera.Eye.Y, MainScene.Camera.Eye.Z, 0.8f);
+            MainScene.Light = new PointLight(MainScene.Camera.Eye.X, MainScene.Camera.Eye.Y, MainScene.Camera.Eye.Z, 0.8f);
             MainScene.ViewMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewMatrix(MainScene.Camera));
             MainScene.ProjectionMatrix = Matrix4x4.Transpose(MatrixOperator.GetProjectionMatrix(MainScene.Camera));
             MainScene.ViewPortMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewPortMatrix(WindowWidth, WindowHeight));
@@ -108,7 +110,7 @@ namespace ObjVisualizer
             MainScene.Camera.Radius += -e.Delta / 100;
             if (MainScene.Camera.Radius < 0.01f)
                 MainScene.Camera.Radius = 0.01f;
-            if (MainScene.Camera.Radius > 5*MainScene.Camera.Radius)
+            if (MainScene.Camera.Radius > 5 * MainScene.Camera.Radius)
                 MainScene.Camera.Radius = 5 * MainScene.Camera.Radius;
 
             e.Handled = true;
@@ -134,7 +136,7 @@ namespace ObjVisualizer
                     MainScene.Stage = Scene.LabaStage.Laba5;
                     break;
                 case Key.A:
-                    MainScene.Camera.Target += new Vector3(-1f,0,0);
+                    MainScene.Camera.Target += new Vector3(-1f, 0, 0);
                     break;
                 case Key.D:
                     MainScene.Camera.Target += new Vector3(1f, 0, 0);
@@ -164,9 +166,9 @@ namespace ObjVisualizer
                 MainScene.Camera.CameraZeta += yoffset * 0.005f;
                 MainScene.Camera.CameraPhi += xoffset * 0.005f;
                 if (MainScene.Camera.CameraZeta > Math.PI)
-                    MainScene.Camera.CameraZeta = (float)Math.PI-0.01f;
+                    MainScene.Camera.CameraZeta = (float)Math.PI - 0.01f;
                 if (MainScene.Camera.CameraZeta < 0)
-                    MainScene.Camera.CameraZeta =  0.01f;
+                    MainScene.Camera.CameraZeta = 0.01f;
 
                 LastMousePosition = currentPosition;
             }
@@ -189,7 +191,6 @@ namespace ObjVisualizer
             MainScene.SceneResize(WindowWidth, WindowHeight);
         }
 
-
         private async void Frame()
         {
             var Vertexes = Reader.Vertices.ToList();
@@ -206,10 +207,12 @@ namespace ObjVisualizer
                 writableBitmap.Lock();
 
                 MainScene.Camera.Eye = new Vector3(
-                       MainScene.Camera.Radius * (float)Math.Cos(MainScene.Camera.CameraPhi) * (float)Math.Sin(MainScene.Camera.CameraZeta),
+                       MainScene.Camera.Radius * (float)Math.Cos(MainScene.Camera.CameraPhi) * 
+                       (float)Math.Sin(MainScene.Camera.CameraZeta),
                        MainScene.Camera.Radius * (float)Math.Cos(MainScene.Camera.CameraZeta),
-                       MainScene.Camera.Radius * (float)Math.Sin(MainScene.Camera.CameraPhi) * (float)Math.Sin(MainScene.Camera.CameraZeta));
-                MainScene.Light = new PointLigth(MainScene.Camera.Eye.X, MainScene.Camera.Eye.Y, MainScene.Camera.Eye.Z, 0.8f);
+                       MainScene.Camera.Radius * (float)Math.Sin(MainScene.Camera.CameraPhi) * 
+                       (float)Math.Sin(MainScene.Camera.CameraZeta));
+                MainScene.Light = new PointLight(MainScene.Camera.Eye.X, MainScene.Camera.Eye.Y, MainScene.Camera.Eye.Z, 0.8f);
 
                 MainScene.UpdateViewMatix();
 
@@ -269,14 +272,15 @@ namespace ObjVisualizer
                                 var triangle = Enumerable.Range(0, FaceVertexes.Count)
                                     .Select(i => MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i] - 1]))
                                     .ToList();
-                                float light = MainScene.Light.CalculateLight(new Vector3(Vertexes[FaceVertexes[0]-1].X, Vertexes[FaceVertexes[0]-1].Y, Vertexes[FaceVertexes[0]-1].Z), PoliNormal);
-                                drawer.Rasterize(triangle, System.Drawing.Color.FromArgb((byte)(light*0 > 255 ? 0 : light * 0) , (byte)(light * 255 > 255 ? 255 : light * 255), (byte)(light * 0 > 255 ? 0 : light *0)));
-
-
+                                float light = MainScene.Light.CalculateLight(new Vector3(Vertexes[FaceVertexes[0] - 1].X, 
+                                    Vertexes[FaceVertexes[0] - 1].Y, Vertexes[FaceVertexes[0] - 1].Z), PoliNormal);
+                                drawer.Rasterize(triangle,
+                                    Color.FromArgb(
+                                        (byte)(light * 0 > 255 ? 0 : light * 0),
+                                        (byte)(light * 255 > 255 ? 255 : light * 255),
+                                        (byte)(light * 0 > 255 ? 0 : light * 0)));
                             }
                         }
-
-
                     });
                 }
 

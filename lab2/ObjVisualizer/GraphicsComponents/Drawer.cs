@@ -102,25 +102,25 @@ namespace ObjVisualizer.GraphicsComponents
                     (x_left, x_right) = (x012, x02);
                     (z_left, z_right) = (z012, z02);
                 }
-                var TopY = int.Max(0, (int)float.Ceiling(triangle.A.Y));
-                var BottomY = int.Min(_height, (int)float.Ceiling(triangle.C.Y));
-                for (int y = TopY; y < BottomY; y++)
+                var topY = int.Max(0, (int)float.Ceiling(triangle.A.Y));
+                var bottomY = int.Min(_height, (int)float.Ceiling(triangle.C.Y));
+                for (int y = topY; y < bottomY; y++)
                 {
                     var index = (int)(y - triangle.A.Y);
 
                     //if (index < x_left.Count && index < x_right.Count)
                     {
-                        var LeftX = int.Max(0, (int)float.Ceiling(x_left[index]));
-                        var RightX = int.Min(_width, (int)float.Ceiling(x_right[index]));
+                        var leftX = int.Max(0, (int)float.Ceiling(x_left[index]));
+                        var rightX = int.Min(_width, (int)float.Ceiling(x_right[index]));
                         //var xl = (int)x_left[index];
                         //var xr = (int)x_right[index];
                         var zl = z_left[index];
                         var zr = z_right[index];
-                        var zscan = Interpolate(LeftX, zl, RightX, zr);
+                        var zscan = Interpolate(leftX, zl, rightX, zr);
 
-                        for (int x = LeftX; x < RightX; x++)
+                        for (int x = leftX; x < rightX; x++)
                         {
-                            var z = zscan[x - LeftX];
+                            var z = zscan[x - leftX];
                             if (z < ZBuffer[y][x])
                             {
                                 ZBuffer[y][x] = z;
