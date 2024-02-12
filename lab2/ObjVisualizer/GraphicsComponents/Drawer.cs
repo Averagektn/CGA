@@ -23,11 +23,10 @@ namespace ObjVisualizer.GraphicsComponents
             for (int i = 1; i < vertices.Count - 1; i++)
             {
                 MyRasterizeTriangle(new(
-                new(vertices[0].X, vertices[0].Y, vertices[0].Z),
-                new(vertices[i].X, vertices[i].Y, vertices[i].Z),
-                new(vertices[i+1].X, vertices[i+1].Y, vertices[i+1].Z)), color);
+                    new(vertices[0].X, vertices[0].Y, vertices[0].Z),
+                    new(vertices[i].X, vertices[i].Y, vertices[i].Z),
+                    new(vertices[i + 1].X, vertices[i + 1].Y, vertices[i + 1].Z)), color);
             }
-            
         }
 
         private static List<float> Interpolate(float i0, float d0, float i1, float d1)
