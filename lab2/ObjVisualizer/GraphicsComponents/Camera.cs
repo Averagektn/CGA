@@ -12,8 +12,8 @@ namespace ObjVisualizer.GraphicsComponents
         public float ZFar { get; set; } = zFar;
         public float ZNear { get; set; } = zNear;
         public float Radius { get; set; } = 10;
-        public float CameraZeta { get; set; } = (float)Math.PI / 2;
-        public float CameraPhi { get; set; } = (float)Math.PI / 2;
+        public float CameraZeta { get; set; } = (float)Math.PI/2;
+        public float CameraPhi { get; set; } = (float)Math.PI/2;
 
         public void ChangeCameraAspect(int Width, int Height)
         {

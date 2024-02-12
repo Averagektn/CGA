@@ -103,6 +103,10 @@ namespace ObjVisualizer
         private void MainWindow_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
             MainScene.Camera.Radius += -e.Delta / 100;
+            if (MainScene.Camera.Radius < 0.01f)
+                MainScene.Camera.Radius = 0.01f;
+            if (MainScene.Camera.Radius > 5*MainScene.Camera.Radius)
+                MainScene.Camera.Radius = 5 * MainScene.Camera.Radius;
 
             e.Handled = true;
         }
@@ -142,6 +146,10 @@ namespace ObjVisualizer
 
                 MainScene.Camera.CameraZeta += yoffset * 0.005f;
                 MainScene.Camera.CameraPhi += xoffset * 0.005f;
+                if (MainScene.Camera.CameraZeta > Math.PI)
+                    MainScene.Camera.CameraZeta = (float)Math.PI-0.01f;
+                if (MainScene.Camera.CameraZeta < 0)
+                    MainScene.Camera.CameraZeta =  0.01f;
 
                 LastMousePosition = currentPosition;
             }
