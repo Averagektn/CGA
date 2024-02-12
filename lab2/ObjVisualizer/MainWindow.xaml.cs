@@ -130,6 +130,20 @@ namespace ObjVisualizer
                 case Key.D5:
                     MainScene.Stage = Scene.LabaStage.Laba5;
                     break;
+                case Key.A:
+                    MainScene.Camera.Target += new Vector3(-1f,0,0);
+                    break;
+                case Key.D:
+                    MainScene.Camera.Target += new Vector3(1f, 0, 0);
+                    break;
+                case Key.S:
+                    MainScene.Camera.Target += new Vector3(0, -1f, 0);
+
+                    break;
+                case Key.W:
+                    MainScene.Camera.Target += new Vector3(0, 1f, 0);
+
+                    break;
                 default:
                     break;
             }
