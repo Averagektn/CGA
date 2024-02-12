@@ -4,10 +4,10 @@ using ObjVisualizer.Parser;
 using System.Numerics;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Input;
 using System.Windows.Threading;
+using System.Windows.Media;
 
 namespace ObjVisualizer
 {
@@ -31,7 +31,7 @@ namespace ObjVisualizer
 
         public MainWindow()
         {
-            Reader = ObjReader.GetObjReader("Objects\\Shrek.obj");
+            Reader = ObjReader.GetObjReader("Objects\\Ship.obj");
 
             InitializeComponent();
 
@@ -84,8 +84,10 @@ namespace ObjVisualizer
             MainScene = Scene.GetScene();
             MainScene.Stage = Scene.LabaStage.Laba1;
 
-            MainScene.Camera = new Camera(new Vector3(0, 0f, 0f), new Vector3(0, 1, 0), new Vector3(0, 0, 0),
+            MainScene.Camera = new Camera(new Vector3(0, 0f, 0f), new Vector3(0, 1, 0), new Vector3(0, 0, 1),
                 WindowWidth / (float)WindowHeight, 70.0f * ((float)Math.PI / 180.0f), 10.0f, 0.1f);
+
+           
             //MainScene.ModelMatrix = Matrix4x4.Transpose(MatrixOperator.Scale(
             //    new Vector3(0.01f, 0.01f, 0.01f)) * MatrixOperator.RotateY(-20f * ((float)Math.PI / 180.0f))
             //    * MatrixOperator.RotateX(20f * ((float)Math.PI / 180.0f)) * MatrixOperator.Move(new Vector3(0, 0, 0)));
@@ -93,6 +95,7 @@ namespace ObjVisualizer
                         MainScene.Camera.Radius * (float)Math.Cos(MainScene.Camera.CameraPhi) * (float)Math.Sin(MainScene.Camera.CameraZeta),
                         MainScene.Camera.Radius * (float)Math.Cos(MainScene.Camera.CameraZeta),
                         MainScene.Camera.Radius * (float)Math.Sin(MainScene.Camera.CameraPhi) * (float)Math.Sin(MainScene.Camera.CameraZeta));
+            MainScene.Light = new PointLigth(MainScene.Camera.Eye.X, MainScene.Camera.Eye.Y, MainScene.Camera.Eye.Z, 0.8f);
             MainScene.ViewMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewMatrix(MainScene.Camera));
             MainScene.ProjectionMatrix = Matrix4x4.Transpose(MatrixOperator.GetProjectionMatrix(MainScene.Camera));
             MainScene.ViewPortMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewPortMatrix(WindowWidth, WindowHeight));
@@ -206,6 +209,7 @@ namespace ObjVisualizer
                        MainScene.Camera.Radius * (float)Math.Cos(MainScene.Camera.CameraPhi) * (float)Math.Sin(MainScene.Camera.CameraZeta),
                        MainScene.Camera.Radius * (float)Math.Cos(MainScene.Camera.CameraZeta),
                        MainScene.Camera.Radius * (float)Math.Sin(MainScene.Camera.CameraPhi) * (float)Math.Sin(MainScene.Camera.CameraZeta));
+                MainScene.Light = new PointLigth(MainScene.Camera.Eye.X, MainScene.Camera.Eye.Y, MainScene.Camera.Eye.Z, 0.8f);
 
                 MainScene.UpdateViewMatix();
 
@@ -265,7 +269,8 @@ namespace ObjVisualizer
                                 var triangle = Enumerable.Range(0, 3)
                                     .Select(i => MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i] - 1]))
                                     .ToList();
-                                drawer.Rasterize(triangle);
+                                float light = MainScene.Light.CalculateLight(new Vector3(Vertexes[FaceVertexes[0]-1].X, Vertexes[FaceVertexes[0]-1].Y, Vertexes[FaceVertexes[0]-1].Z), PoliNormal);
+                                drawer.Rasterize(triangle, System.Drawing.Color.FromArgb((byte)(light*0 > 255 ? 0 : light * 0) , (byte)(light * 255 > 255 ? 255 : light * 255), (byte)(light * 0 > 255 ? 0 : light *0)));
 
 
                             }
