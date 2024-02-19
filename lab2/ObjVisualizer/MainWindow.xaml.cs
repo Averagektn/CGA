@@ -33,7 +33,7 @@ namespace ObjVisualizer
 
         public MainWindow()
         {
-            Reader = ObjReader.GetObjReader("Objects\\Shrek.obj");
+            Reader = ObjReader.GetObjReader("Objects\\DoomCombatScene.obj");
 
             InitializeComponent();
 
@@ -90,7 +90,7 @@ namespace ObjVisualizer
                 WindowWidth / (float)WindowHeight, 70.0f * ((float)Math.PI / 180.0f), 10.0f, 0.1f);
 
 
-            MainScene.ModelMatrix = Matrix4x4.Transpose(MatrixOperator.Move(new Vector3(0, -40, 0)));
+            MainScene.ModelMatrix = Matrix4x4.Transpose(MatrixOperator.Move(new Vector3(0, -2, 0)));
             MainScene.ChangeStatus = true;
             MainScene.Camera.Eye = new Vector3(
                         MainScene.Camera.Radius * (float)Math.Cos(MainScene.Camera.CameraPhi) * (float)Math.Sin(MainScene.Camera.CameraZeta),

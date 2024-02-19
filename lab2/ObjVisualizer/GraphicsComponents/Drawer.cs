@@ -115,7 +115,7 @@ namespace ObjVisualizer.GraphicsComponents
                 //{
                 //    YDiffBottom= 0 - (int)triangle.C.Y;
                 //}
-                for (int y = TopY; y <= triangle.C.Y /*- YDiffBottom*/; y++)
+                for (int y = TopY; y <= float.Round(triangle.C.Y,0) /*- YDiffBottom*/; y++)
                 {
                     if (y < 0 || y >= _height)
                         continue;
