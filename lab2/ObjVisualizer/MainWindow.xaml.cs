@@ -1,5 +1,4 @@
 ﻿using ObjVisualizer.GraphicsComponents;
-using ObjVisualizer.MouseHandlers;
 using ObjVisualizer.Parser;
 using System.Numerics;
 using System.Windows;
@@ -33,7 +32,7 @@ namespace ObjVisualizer
 
         public MainWindow()
         {
-            Reader = ObjReader.GetObjReader("Objects\\DoomCombatScene.obj");
+            Reader = ObjReader.GetObjReader("Objects\\Ship.obj");
 
             InitializeComponent();
 
@@ -41,7 +40,6 @@ namespace ObjVisualizer
             PreviewMouseWheel += MainWindow_PreviewMouseWheel;
             MouseMove += MainWindow_MouseMove;
             MouseLeftButtonDown += MainWindow_MouseLeftButtonDown;
-            MouseLeftButtonUp += MainWindow_MouseLeftButtonUp;
             PreviewKeyDown += MainWindow_PreviewKeyDown;
 
             WindowWidth = (int)Width;
@@ -90,7 +88,7 @@ namespace ObjVisualizer
                 WindowWidth / (float)WindowHeight, 70.0f * ((float)Math.PI / 180.0f), 10.0f, 0.1f);
 
 
-            MainScene.ModelMatrix = Matrix4x4.Transpose(MatrixOperator.Move(new Vector3(0, -2, 0)));
+            MainScene.ModelMatrix = Matrix4x4.Transpose(MatrixOperator.Scale(new Vector3(0.1f,0.1f,0.1f)) * MatrixOperator.Move(new Vector3(0, -2, 0)));
             MainScene.ChangeStatus = true;
             MainScene.Camera.Eye = new Vector3(
                         MainScene.Camera.Radius * (float)Math.Cos(MainScene.Camera.CameraPhi) * (float)Math.Sin(MainScene.Camera.CameraZeta),
@@ -189,9 +187,6 @@ namespace ObjVisualizer
 
         private void MainWindow_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) =>
             LastMousePosition = e.GetPosition(this);
-
-        private void MainWindow_MouseLeftButtonUp(object sender, MouseButtonEventArgs e) =>
-            MouseHandler.LastAction = MouseHandler.Actions.Idle;
 
         private void Resize(object sender, SizeChangedEventArgs e)
         {

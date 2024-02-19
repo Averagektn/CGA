@@ -85,7 +85,7 @@ namespace ObjVisualizer.GraphicsComponents
                 z01.RemoveAt(z01.Count - 1);
                 var z012 = z01.Concat(z12).ToList();
 
-                var m = (int)Math.Floor(x012.Count / 2.0);
+                var m = (int)Math.Floor(x012.Count / 2.0f);
                 List<float> x_left;
                 List<float> x_right;
                 List<float> z_left;
@@ -129,10 +129,6 @@ namespace ObjVisualizer.GraphicsComponents
                         var zscan = Interpolate(xl, zl, xr, zr);
                         for (int x = xl; x <= xr; x++)
                         {
-                            //if (y > triangle.C.Y || x > triangle.C.X + 100 && x > triangle.A.X + 100 && x > triangle.B.X + 100)
-                            //{
-
-                            //}
                             if (x < 0 || x >= _width)
                                 continue;
                             var z = zscan[x - xl];
@@ -140,9 +136,9 @@ namespace ObjVisualizer.GraphicsComponents
                             {
                                 ZBuffer[y][x] = z;
                                 byte* pixelPtr = data + y * _stride + x * 3;
-                                *pixelPtr++ = color.R;
+                                *pixelPtr++ = color.B;
                                 *pixelPtr++ = color.G;
-                                *pixelPtr = color.B;
+                                *pixelPtr = color.R;
                             }
 
                         }
