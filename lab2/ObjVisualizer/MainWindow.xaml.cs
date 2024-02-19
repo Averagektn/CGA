@@ -90,9 +90,8 @@ namespace ObjVisualizer
                 WindowWidth / (float)WindowHeight, 70.0f * ((float)Math.PI / 180.0f), 10.0f, 0.1f);
 
 
-            //MainScene.ModelMatrix = Matrix4x4.Transpose(MatrixOperator.Scale(
-            //    new Vector3(0.01f, 0.01f, 0.01f)) * MatrixOperator.RotateY(-20f * ((float)Math.PI / 180.0f))
-            //    * MatrixOperator.RotateX(20f * ((float)Math.PI / 180.0f)) * MatrixOperator.Move(new Vector3(0, 0, 0)));
+            MainScene.ModelMatrix = Matrix4x4.Transpose(MatrixOperator.Move(new Vector3(0, -40, 0)));
+            MainScene.ChangeStatus = true;
             MainScene.Camera.Eye = new Vector3(
                         MainScene.Camera.Radius * (float)Math.Cos(MainScene.Camera.CameraPhi) * (float)Math.Sin(MainScene.Camera.CameraZeta),
                         MainScene.Camera.Radius * (float)Math.Cos(MainScene.Camera.CameraZeta),
@@ -102,8 +101,22 @@ namespace ObjVisualizer
             MainScene.ProjectionMatrix = Matrix4x4.Transpose(MatrixOperator.GetProjectionMatrix(MainScene.Camera));
             MainScene.ViewPortMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewPortMatrix(WindowWidth, WindowHeight));
 
+            //DisplayMatrix(MainScene.ViewMatrix);
+            //DisplayMatrix(MainScene.ProjectionMatrix);
+            //DisplayMatrix(MainScene.ViewPortMatrix);
+
             Frame();
         }
+
+        private void DisplayMatrix(Matrix4x4 matrix)
+        {
+            for (int row = 0; row < 4; row++)
+            {
+                Console.WriteLine($"{matrix[row, 0]}, {matrix[row, 1]}, {matrix[row, 2]}, {matrix[row, 3]}");
+            }
+            Console.WriteLine();
+        }
+    
 
         private void MainWindow_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
@@ -221,13 +234,20 @@ namespace ObjVisualizer
                 unsafe
                 {
                     byte* pixels = (byte*)buffer.ToPointer();
+                    if (MainScene.ChangeStatus)
+                    {
+                        for (int i = 0; i < Vertexes.Count; i++)
+                        {
+                            Vertexes[i] = Vector4.Transform(Vertexes[i],MainScene.ModelMatrix);
+                        }
+                    }
 
                     Parallel.ForEach(Reader.Faces, face =>
                     {
                         var FaceVertexes = face.VertexIds.ToList();
                         var FaceNormales = face.NormalIds.ToList();
                         var ZeroVertext = Vertexes[FaceVertexes[0] - 1];
-
+         
                         Vector3 PoliNormal = Vector3.Zero;
                         if (MainScene.Stage == Scene.LabaStage.Laba1)
                         {
@@ -276,9 +296,9 @@ namespace ObjVisualizer
                                     Vertexes[FaceVertexes[0] - 1].Y, Vertexes[FaceVertexes[0] - 1].Z), PoliNormal);
                                 drawer.Rasterize(triangle,
                                     Color.FromArgb(
-                                        (byte)(light * 0 > 255 ? 0 : light * 0),
                                         (byte)(light * 255 > 255 ? 255 : light * 255),
-                                        (byte)(light * 0 > 255 ? 0 : light * 0)));
+                                        (byte)(light * 255 > 255 ? 255 : light * 255),
+                                        (byte)(light * 255 > 255 ? 255: light * 255)));
                             }
                         }
                     });
