@@ -42,8 +42,8 @@ namespace ObjVisualizer
             MouseLeftButtonDown += MainWindow_MouseLeftButtonDown;
             PreviewKeyDown += MainWindow_PreviewKeyDown;
 
-            WindowWidth = (int)Width;
-            WindowHeight = (int)Height;
+            WindowWidth = (int)Width*2;
+            WindowHeight = (int)Height*2;
 
             Timer = new DispatcherTimer
             {
@@ -57,8 +57,11 @@ namespace ObjVisualizer
             {
                 Width = Width,
                 Height = Height,
-                Stretch = Stretch.Fill
+                Stretch = Stretch.Fill,
+                
+                
             };
+            RenderOptions.SetBitmapScalingMode(Image, BitmapScalingMode.HighQuality);
 
             TextBlock = new TextBlock
             {
@@ -88,7 +91,7 @@ namespace ObjVisualizer
                 WindowWidth / (float)WindowHeight, 70.0f * ((float)Math.PI / 180.0f), 10.0f, 0.1f);
 
 
-            MainScene.ModelMatrix = Matrix4x4.Transpose(MatrixOperator.Scale(new Vector3(0.1f,0.1f,0.1f)) * MatrixOperator.Move(new Vector3(0, -2, 0)));
+            MainScene.ModelMatrix = Matrix4x4.Transpose(MatrixOperator.Scale(new Vector3(.1f,.1f,.1f)) * MatrixOperator.Move(new Vector3(0, -2, 0)));
             MainScene.ChangeStatus = true;
             MainScene.Camera.Eye = new Vector3(
                         MainScene.Camera.Radius * (float)Math.Cos(MainScene.Camera.CameraPhi) * (float)Math.Sin(MainScene.Camera.CameraZeta),
@@ -98,10 +101,6 @@ namespace ObjVisualizer
             MainScene.ViewMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewMatrix(MainScene.Camera));
             MainScene.ProjectionMatrix = Matrix4x4.Transpose(MatrixOperator.GetProjectionMatrix(MainScene.Camera));
             MainScene.ViewPortMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewPortMatrix(WindowWidth, WindowHeight));
-
-            //DisplayMatrix(MainScene.ViewMatrix);
-            //DisplayMatrix(MainScene.ProjectionMatrix);
-            //DisplayMatrix(MainScene.ViewPortMatrix);
 
             Frame();
         }
@@ -193,8 +192,8 @@ namespace ObjVisualizer
             Image.Width = (int)e.NewSize.Width;
             Image.Height = (int)e.NewSize.Height;
 
-            WindowWidth = (int)Width;
-            WindowHeight = (int)Height;
+            WindowWidth = (int)Width*2;
+            WindowHeight = (int)Height*2;
 
             MainScene.SceneResize(WindowWidth, WindowHeight);
         }

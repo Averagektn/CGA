@@ -71,14 +71,17 @@ namespace ObjVisualizer.GraphicsComponents
                 {
                     (triangle.B, triangle.C) = (triangle.C, triangle.B);
                 }
+                int A = (int)float.Round(triangle.A.Y, 0);
+                int B = (int)float.Round(triangle.B.Y, 0);
+                int C = (int)float.Round(triangle.C.Y, 0);
 
-                var x01 = Interpolate((int)float.Round(triangle.A.Y, 0), triangle.A.X, (int)float.Round(triangle.B.Y, 0), triangle.B.X);
-                var x12 = Interpolate((int)float.Round(triangle.B.Y, 0), triangle.B.X, (int)float.Round(triangle.C.Y, 0), triangle.C.X);
-                var x02 = Interpolate((int)float.Round(triangle.A.Y, 0), triangle.A.X, (int)float.Round(triangle.C.Y, 0), triangle.C.X);
+                var x01 = Interpolate(A, triangle.A.X, B, triangle.B.X);
+                var x12 = Interpolate(B, triangle.B.X, C, triangle.C.X);
+                var x02 = Interpolate(A, triangle.A.X, C, triangle.C.X);
 
-                var z01 = Interpolate((int)float.Round(triangle.A.Y, 0), triangle.A.Z, (int)float.Round(triangle.B.Y, 0), triangle.B.Z);
-                var z12 = Interpolate((int)float.Round(triangle.B.Y, 0), triangle.B.Z, (int)float.Round(triangle.C.Y, 0), triangle.C.Z);
-                var z02 = Interpolate((int)float.Round(triangle.A.Y, 0), triangle.A.Z, (int)float.Round(triangle.C.Y, 0), triangle.C.Z);
+                var z01 = Interpolate(A, triangle.A.Z, B, triangle.B.Z);
+                var z12 = Interpolate(B, triangle.B.Z, C, triangle.C.Z);
+                var z02 = Interpolate(A, triangle.A.Z, C, triangle.C.Z);
 
                 x01.RemoveAt(x01.Count - 1);
                 var x012 = x01.Concat(x12).ToList();
@@ -110,12 +113,8 @@ namespace ObjVisualizer.GraphicsComponents
                     YDiffTopI = (int)float.Round(triangle.C.Y, 0);
                     TopY = 0;
                 }
-                //int YDiffBottom = 0;
-                //if (triangle.C.Y > _height)
-                //{
-                //    YDiffBottom= 0 - (int)triangle.C.Y;
-                //}
-                for (int y = TopY; y <= float.Round(triangle.C.Y,0) /*- YDiffBottom*/; y++)
+               
+                for (int y = TopY; y <= (int)float.Round(triangle.C.Y,0); y++)
                 {
                     if (y < 0 || y >= _height)
                         continue;
@@ -127,11 +126,11 @@ namespace ObjVisualizer.GraphicsComponents
                         var zl = z_left[index];
                         var zr = z_right[index];
                         var zscan = Interpolate(xl, zl, xr, zr);
-                        for (int x = xl; x <= xr; x++)
+                        for (int x = xl; x < xr; x++)
                         {
                             if (x < 0 || x >= _width)
                                 continue;
-                            var z = zscan[x - xl];
+                            var z = 100*zscan[x - xl];
                             if (z < ZBuffer[y][x])
                             {
                                 ZBuffer[y][x] = z;
