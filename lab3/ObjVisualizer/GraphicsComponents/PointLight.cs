@@ -13,7 +13,7 @@ namespace ObjVisualizer.GraphicsComponents
         {
             Vector3 l = new Vector3(X, Y, Z) - point;
 
-            float lightResult = 0.05f;
+            float lightResult = 0.1f;
             float angle = Vector3.Dot(normal, l);
 
             if (angle > 0)
