@@ -76,8 +76,6 @@ namespace ObjVisualizer.GraphicsComponents
 
         private unsafe void MyRasterizeTriangle(Triangle triangle, Color color)
         {
-            //if (triangle.A.X > 0 && triangle.B.X > 0 && triangle.C.X > 0 && triangle.A.Y > 0 && triangle.B.Y > 0 && triangle.C.Y > 0
-            //    && triangle.A.X < _width && triangle.B.X < _width && triangle.C.X < _width && triangle.A.Y < _height && triangle.B.Y < _height && triangle.C.Y < _height)
             if ((triangle.A.X > 0 && triangle.A.Y > 0 && triangle.A.X < _width && triangle.A.Y < _height) ||
             (triangle.B.X > 0 && triangle.B.Y > 0 && triangle.B.X < _width && triangle.B.Y < _height) ||
             (triangle.C.X > 0 && triangle.C.Y > 0 && triangle.C.X < _width && triangle.C.Y < _height))
@@ -99,18 +97,9 @@ namespace ObjVisualizer.GraphicsComponents
                 int B = (int)float.Round(triangle.B.Y, 0);
                 int C = (int)float.Round(triangle.C.Y, 0);
 
-                var x01 = Interpolate(A, triangle.A.X, B, triangle.B.X);
-                var x12 = Interpolate(B, triangle.B.X, C, triangle.C.X);
-                var x02 = Interpolate(A, triangle.A.X, C, triangle.C.X);
 
-                var z01 = Interpolate(A, triangle.A.Z, B, triangle.B.Z);
-                var z12 = Interpolate(B, triangle.B.Z, C, triangle.C.Z);
-                var z02 = Interpolate(A, triangle.A.Z, C, triangle.C.Z);
-
-                x01.RemoveAt(x01.Count - 1);
-                var x012 = x01.Concat(x12).ToList();
-                z01.RemoveAt(z01.Count - 1);
-                var z012 = z01.Concat(z12).ToList();
+                (var x02, var x012) = TraingleInterpolation(A, triangle.A.X, B, triangle.B.X, C, triangle.C.X);
+                (var z02, var z012) = TraingleInterpolation(A, triangle.A.Z, B, triangle.B.Z, C, triangle.C.Z);
 
                 var m = (int)Math.Floor(x012.Count / 2.0f);
                 List<float> x_left;
@@ -173,46 +162,24 @@ namespace ObjVisualizer.GraphicsComponents
             }
         }
 
-        public List<Vector3> InterpolateNormals(Vector3 normal1, Vector3 normal2, int numPoints)
+        private Color CalculateColor(Vector3 point, Vector3 normal, Scene scene, Color baseColor)
         {
-            List<Vector3> interpolatedNormals = new List<Vector3>();
-            float step = 1f / (numPoints);
-
-            for (int i = 0; i < numPoints; i++)
-            {
-                float t = i * step;
-                Vector3 interpolatedNormal = Vector3.Lerp(normal1, normal2, t);
-                interpolatedNormal = Vector3.Normalize(interpolatedNormal);
-
-                interpolatedNormals.Add(interpolatedNormal);
-            }
-
-            return interpolatedNormals;
-        }
-
-        public List<Vector3> InterpolateVerteces(Vector3 vertex1, Vector3 vertex2, int numPoints)
-        {
-            List<Vector3> interpolatedVerteces = new List<Vector3>();
-            float step = 1f / (numPoints);
-
-            for (int i = 0; i < numPoints; i++)
-            {
-                float t = i * step;
-                Vector3 interpolatedVertex = Vector3.Lerp(vertex1, vertex1, t);
-                interpolatedVerteces.Add(interpolatedVertex);
-            }
-
-            return interpolatedVerteces;
-        }
-
-        public Color CalculateColor(Vector3 point, Vector3 normal, Scene scene, Color baseColor)
-        {
-            var light = scene.Light.CalculateLight(point, normal);
+            var light = scene.Light.CalculateLightLaba3(point, normal, scene.Camera.Eye);
             var color = Color.FromArgb(
-                (byte)(light * baseColor.R> 255 ? 255 : light * baseColor.R),
+                (byte)(light * baseColor.R > 255 ? 255 : light*baseColor.R),
                 (byte)(light * baseColor.G > 255 ? 255 : light * baseColor.G),
                 (byte)(light * baseColor.B > 255 ? 255 : light * baseColor.B));
             return color;
+        }
+
+        private (List<float>, List<float>) TraingleInterpolation(int y0, float v0,int y1, float v1, int y2, float v2)
+        {
+            var v01 = Interpolate(y0, v0, y1, v1);
+            var v12 = Interpolate(y1, v1, y2, v2);
+            var v02 = Interpolate(y0, v0, y2, v2);
+            v01.RemoveAt(v01.Count - 1);
+            var v012 = v01.Concat(v12).ToList();
+            return (v02, v012);
         }
         private unsafe void MyRasterizeTrianglePhong(Triangle triangle, Scene scene)
         {
@@ -220,7 +187,7 @@ namespace ObjVisualizer.GraphicsComponents
             (triangle.B.X > 0 && triangle.B.Y > 0 && triangle.B.X < _width && triangle.B.Y < _height) ||
             (triangle.C.X > 0 && triangle.C.Y > 0 && triangle.C.X < _width && triangle.C.Y < _height))
             {
-                Color baseColor = Color.Green;
+                Color baseColor = Color.White;
                 byte* data = (byte*)Buffer.ToPointer();
                 if (triangle.B.Y < triangle.A.Y)
                 {
@@ -243,59 +210,55 @@ namespace ObjVisualizer.GraphicsComponents
                 int YA = (int)float.Round(triangle.A.Y, 0);
                 int YB = (int)float.Round(triangle.B.Y, 0);
                 int YC = (int)float.Round(triangle.C.Y, 0);
+               
+                (var x02, var x012) = TraingleInterpolation(YA, triangle.A.X, YB, triangle.B.X, YC, triangle.C.X);
+                (var z02, var z012) = TraingleInterpolation(YA, triangle.A.Z, YB, triangle.B.Z, YC, triangle.C.Z);
+
+
+                (var nx02, var nx012) = TraingleInterpolation(YA, triangle.NormalA.X, YB, triangle.NormalB.X, YC, triangle.NormalC.X);
+                (var ny02, var ny012) = TraingleInterpolation(YA, triangle.NormalA.Y, YB, triangle.NormalB.Y, YC, triangle.NormalC.Y);
+                (var nz02, var nz012) = TraingleInterpolation(YA, triangle.NormalA.Z, YB, triangle.NormalB.Z, YC, triangle.NormalC.Z);
                 
-                var x01 = Interpolate(YA, triangle.A.X, YB, triangle.B.X);
-                var x12 = Interpolate(YB, triangle.B.X, YC, triangle.C.X);
-                var x02 = Interpolate(YA, triangle.A.X, YC, triangle.C.X);
-
-                var z01 = Interpolate(YA, triangle.A.Z, YB, triangle.B.Z);
-                var z12 = Interpolate(YB, triangle.B.Z, YC, triangle.C.Z);
-                var z02 = Interpolate(YA, triangle.A.Z, YC, triangle.C.Z);
-
-                var nx01 = InterpolateNormals(triangle.NormalA, triangle.NormalB, x01.Count);
-                var nx12 = InterpolateNormals(triangle.NormalB, triangle.NormalC, x12.Count);
-                var nx02 = InterpolateNormals(triangle.NormalA, triangle.NormalC, x02.Count);
-
-                var r01 = InterpolateVerteces(triangle.RealA, triangle.RealB, x01.Count);
-                var r12 = InterpolateVerteces(triangle.RealB, triangle.RealC, x12.Count);
-                var r02 = InterpolateVerteces(triangle.RealA, triangle.RealC, x02.Count);
-
-                x01.RemoveAt(x01.Count - 1);
-                
-                var nx012 = nx01.Concat(nx12).ToList();
-                var x012 = x01.Concat(x12).ToList();
-
-              
-
-                var r012 = r01.Concat(r12).ToList();
-
-
-                z01.RemoveAt(z01.Count - 1);
-                var z012 = z01.Concat(z12).ToList();
+                (var rx02, var rx012) = TraingleInterpolation(YA, triangle.RealA.X, YB, triangle.RealB.X, YC, triangle.RealC.X);
+                (var ry02, var ry012) = TraingleInterpolation(YA, triangle.RealA.Y, YB, triangle.RealB.Y, YC, triangle.RealC.Y);
+                (var rz02, var rz012) = TraingleInterpolation(YA, triangle.RealA.Z, YB, triangle.RealB.Z, YC, triangle.RealC.Z);
 
                 var m = (int)Math.Floor(x012.Count / 2.0f);
                 List<float> x_left;
                 List<float> x_right;
                 List<float> z_left;
                 List<float> z_right;
-                List<Vector3> n_right;
-                List<Vector3> n_left;
-                List<Vector3> r_right;
-                List<Vector3> r_left;
+                List<float> nx_right, ny_right, nz_right;
+                List<float> nx_left, ny_left, nz_left;
+
+                List<float> rx_right, ry_right, rz_right;
+                List<float> rx_left, ry_left, rz_left;
+
                 if (x02[m] < x012[m])
                 {
                     (x_left, x_right) = (x02, x012);
                     (z_left, z_right) = (z02, z012);
-                    (n_left, n_right) = (nx02, nx012);
-                    (r_left, r_right) = (r02, r012);
+
+                    (nx_left, nx_right) = (nx02, nx012);
+                    (ny_left, ny_right) = (ny02, ny012);
+                    (nz_left, nz_right) = (nz02, nz012);
+                    (rx_left, rx_right) = (rx02, rx012);
+                    (ry_left, ry_right) = (ry02, ry012);
+                    (rz_left, rz_right) = (rz02, rz012);
 
                 }
                 else
                 {
                     (x_left, x_right) = (x012, x02);
                     (z_left, z_right) = (z012, z02);
-                    (n_left, n_right) = (nx012, nx02);
-                    (r_left, r_right) = (r012, r02);
+
+                    (nx_left, nx_right) = (nx012, nx02);
+                    (ny_left, ny_right) = (ny012, ny02);
+                    (nz_left, nz_right) = (nz012, nz02);
+
+                    (rx_left, rx_right) = (rx012, rx02);
+                    (ry_left, ry_right) = (ry012, ry02);
+                    (rz_left, rz_right) = (rz012, rz02);
 
                 }
                 int YDiffTop = 0;
@@ -307,8 +270,6 @@ namespace ObjVisualizer.GraphicsComponents
                     YDiffTopI = (int)float.Round(triangle.C.Y, 0);
                     TopY = 0;
                 }
-                List<Vector3> normales = new List<Vector3>();
-                List<Vector3> lineReal = new List<Vector3>();
                 for (int y = TopY; y <= (int)float.Round(triangle.C.Y, 0); y++)
                 {
                     if (y < 0 || y >= _height)
@@ -320,9 +281,21 @@ namespace ObjVisualizer.GraphicsComponents
                         var xr = (int)float.Round(x_right[index], 0);
                         var zl = z_left[index];
                         var zr = z_right[index];
+                        (var nxl, var nxr) = (nx_left[index], nx_right[index]);
+                        (var nyl, var nyr) = (ny_left[index], ny_right[index]);
+                        (var nzl, var nzr) = (nz_left[index], nz_right[index]);
+
+                        (var rxl, var rxr) = (rx_left[index], rx_right[index]);
+                        (var ryl, var ryr) = (ry_left[index], ry_right[index]);
+                        (var rzl, var rzr) = (rz_left[index], rz_right[index]);
                         var zscan = Interpolate(xl, zl, xr, zr);
-                        normales = InterpolateNormals(n_left[index], n_right[index], xr - xl);
-                        lineReal = InterpolateVerteces(r_left[index], r_right[index], xr - xl);
+
+                        var nxscan = Interpolate(xl, nxl, xr, nxr);
+                        var nyscan = Interpolate(xl, nyl, xr, nyr);
+                        var nzscan = Interpolate(xl, nzl, xr, nzr);
+                        var rxscan = Interpolate(xl, rxl, xr, rxr);
+                        var ryscan = Interpolate(xl, ryl, xr, ryr);
+                        var rzscan = Interpolate(xl, rzl, xr, rzr);
                         for (int x = xl; x < xr; x++)
                         {
                             if (x < 0 || x >= _width)
@@ -332,7 +305,9 @@ namespace ObjVisualizer.GraphicsComponents
                             {
                                 ZBuffer[y][x] = z;
                                 byte* pixelPtr = data + y * _stride + x * 3;
-                                Color color = CalculateColor(lineReal[x-xl], normales[x-xl], scene, baseColor);
+                                var vertex = new Vector3(rxscan[x - xl], ryscan[x - xl], rzscan[x - xl]);
+                                var normal = new Vector3(nxscan[x - xl], nyscan[x - xl], nzscan[x - xl]);
+                                Color color = CalculateColor( vertex, Vector3.Normalize(normal), scene, baseColor);
                                 *pixelPtr++ = color.B;
                                 *pixelPtr++ = color.G;
                                 *pixelPtr = color.R;

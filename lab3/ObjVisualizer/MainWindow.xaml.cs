@@ -32,7 +32,7 @@ namespace ObjVisualizer
 
         public MainWindow()
         {
-            Reader = ObjReader.GetObjReader("Objects\\Shrek2.obj");
+            Reader = ObjReader.GetObjReader("Objects\\Shrek.obj");
 
             InitializeComponent();
 
@@ -91,7 +91,7 @@ namespace ObjVisualizer
                 WindowWidth / (float)WindowHeight, 70.0f * ((float)Math.PI / 180.0f), 10.0f, 0.1f);
 
 
-            MainScene.ModelMatrix = Matrix4x4.Transpose(MatrixOperator.Scale(new Vector3(1f, 1f, 1f)) * MatrixOperator.Move(new Vector3(0, 0, 0)));
+            MainScene.ModelMatrix = Matrix4x4.Transpose(MatrixOperator.Scale(new Vector3(3f, 3f, 3f)) * MatrixOperator.Move(new Vector3(0, -.5f, 0)));
             MainScene.ChangeStatus = true;
             MainScene.Camera.Eye = new Vector3(
                         MainScene.Camera.Radius * (float)Math.Cos(MainScene.Camera.CameraPhi) * (float)Math.Sin(MainScene.Camera.CameraZeta),
@@ -278,7 +278,7 @@ namespace ObjVisualizer
                                 var triangle = Enumerable.Range(0, FaceVertexes.Count)
                                     .Select(i => MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i] - 1]))
                                     .ToList();
-                                float light = MainScene.Light.CalculateLight(new Vector3(Vertexes[FaceVertexes[0] - 1].X,
+                                float light = MainScene.Light.CalculateLightLaba2(new Vector3(Vertexes[FaceVertexes[0] - 1].X,
                                     Vertexes[FaceVertexes[0] - 1].Y, Vertexes[FaceVertexes[0] - 1].Z), PoliNormal);
                                 drawer.Rasterize(triangle,
                                     Color.FromArgb(
