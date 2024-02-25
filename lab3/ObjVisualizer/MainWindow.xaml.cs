@@ -32,7 +32,7 @@ namespace ObjVisualizer
 
         public MainWindow()
         {
-            Reader = ObjReader.GetObjReader("Objects\\Shrek.obj");
+            Reader = ObjReader.GetObjReader("Objects\\Su-27.obj");
 
             InitializeComponent();
 
@@ -91,7 +91,7 @@ namespace ObjVisualizer
                 WindowWidth / (float)WindowHeight, 70.0f * ((float)Math.PI / 180.0f), 10.0f, 0.1f);
 
 
-            MainScene.ModelMatrix = Matrix4x4.Transpose(MatrixOperator.Scale(new Vector3(3f, 3f, 3f)) * MatrixOperator.Move(new Vector3(0, -.5f, 0)));
+            MainScene.ModelMatrix = Matrix4x4.Transpose(MatrixOperator.Scale(new Vector3(.3f, .3f, .3f)) * MatrixOperator.Move(new Vector3(0, -.5f, 0)));
             MainScene.ChangeStatus = true;
             MainScene.Camera.Eye = new Vector3(
                         MainScene.Camera.Radius * (float)Math.Cos(MainScene.Camera.CameraPhi) * (float)Math.Sin(MainScene.Camera.CameraZeta),
@@ -227,8 +227,8 @@ namespace ObjVisualizer
                         }
                     }
 
-                    //Parallel.ForEach(Reader.Faces, face =>
-                    foreach (var face in Reader.Faces)
+                    Parallel.ForEach(Reader.Faces, face =>
+                    //foreach (var face in Reader.Faces)
                     {
                         var FaceVertexes = face.VertexIds.ToList();
                         var FaceNormales = face.NormalIds.ToList();
@@ -305,8 +305,8 @@ namespace ObjVisualizer
                                 drawer.Rasterize(triangleVertexes, triangleNormales,originalVertexes, MainScene);
                             }
                         }
-                        //});
-                    }
+                    });
+                
                 }
 
                 writableBitmap.AddDirtyRect(rect);
