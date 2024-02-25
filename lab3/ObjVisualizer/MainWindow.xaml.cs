@@ -32,7 +32,7 @@ namespace ObjVisualizer
 
         public MainWindow()
         {
-            Reader = ObjReader.GetObjReader("Objects\\Ship.obj");
+            Reader = ObjReader.GetObjReader("Objects\\Shrek.obj");
 
             InitializeComponent();
 
@@ -42,8 +42,8 @@ namespace ObjVisualizer
             MouseLeftButtonDown += MainWindow_MouseLeftButtonDown;
             PreviewKeyDown += MainWindow_PreviewKeyDown;
 
-            WindowWidth = (int)Width*2;
-            WindowHeight = (int)Height*2;
+            WindowWidth = (int)Width * 2;
+            WindowHeight = (int)Height * 2;
 
             Timer = new DispatcherTimer
             {
@@ -58,8 +58,8 @@ namespace ObjVisualizer
                 Width = Width,
                 Height = Height,
                 Stretch = Stretch.Fill,
-                
-                
+
+
             };
             RenderOptions.SetBitmapScalingMode(Image, BitmapScalingMode.HighQuality);
 
@@ -91,7 +91,7 @@ namespace ObjVisualizer
                 WindowWidth / (float)WindowHeight, 70.0f * ((float)Math.PI / 180.0f), 10.0f, 0.1f);
 
 
-            MainScene.ModelMatrix = Matrix4x4.Transpose(MatrixOperator.Scale(new Vector3(.1f,.1f,.1f)) * MatrixOperator.Move(new Vector3(0, -2, 0)));
+            MainScene.ModelMatrix = Matrix4x4.Transpose(MatrixOperator.Scale(new Vector3(3f, 3f, 3f)) * MatrixOperator.Move(new Vector3(0, -.5f, 0)));
             MainScene.ChangeStatus = true;
             MainScene.Camera.Eye = new Vector3(
                         MainScene.Camera.Radius * (float)Math.Cos(MainScene.Camera.CameraPhi) * (float)Math.Sin(MainScene.Camera.CameraZeta),
@@ -105,22 +105,13 @@ namespace ObjVisualizer
             Frame();
         }
 
-        private void DisplayMatrix(Matrix4x4 matrix)
-        {
-            for (int row = 0; row < 4; row++)
-            {
-                Console.WriteLine($"{matrix[row, 0]}, {matrix[row, 1]}, {matrix[row, 2]}, {matrix[row, 3]}");
-            }
-            Console.WriteLine();
-        }
-    
 
         private void MainWindow_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
             MainScene.Camera.Radius += -e.Delta / 100;
             if (MainScene.Camera.Radius < 0.1f)
                 MainScene.Camera.Radius = 0.1f;
-            if (MainScene.Camera.Radius > 5*MainScene.Camera.Radius)
+            if (MainScene.Camera.Radius > 5 * MainScene.Camera.Radius)
                 MainScene.Camera.Radius = 5 * MainScene.Camera.Radius;
 
             e.Handled = true;
@@ -192,8 +183,8 @@ namespace ObjVisualizer
             Image.Width = (int)e.NewSize.Width;
             Image.Height = (int)e.NewSize.Height;
 
-            WindowWidth = (int)Width*2;
-            WindowHeight = (int)Height*2;
+            WindowWidth = (int)Width * 2;
+            WindowHeight = (int)Height * 2;
 
             MainScene.SceneResize(WindowWidth, WindowHeight);
         }
@@ -214,10 +205,10 @@ namespace ObjVisualizer
                 writableBitmap.Lock();
 
                 MainScene.Camera.Eye = new Vector3(
-                       MainScene.Camera.Radius * (float)Math.Cos(MainScene.Camera.CameraPhi) * 
+                       MainScene.Camera.Radius * (float)Math.Cos(MainScene.Camera.CameraPhi) *
                        (float)Math.Sin(MainScene.Camera.CameraZeta),
                        MainScene.Camera.Radius * (float)Math.Cos(MainScene.Camera.CameraZeta),
-                       MainScene.Camera.Radius * (float)Math.Sin(MainScene.Camera.CameraPhi) * 
+                       MainScene.Camera.Radius * (float)Math.Sin(MainScene.Camera.CameraPhi) *
                        (float)Math.Sin(MainScene.Camera.CameraZeta));
                 MainScene.Light = new PointLight(MainScene.Camera.Eye.X, MainScene.Camera.Eye.Y, MainScene.Camera.Eye.Z, 0.8f);
 
@@ -232,16 +223,17 @@ namespace ObjVisualizer
                     {
                         for (int i = 0; i < Vertexes.Count; i++)
                         {
-                            Vertexes[i] = Vector4.Transform(Vertexes[i],MainScene.ModelMatrix);
+                            Vertexes[i] = Vector4.Transform(Vertexes[i], MainScene.ModelMatrix);
                         }
                     }
 
-                    Parallel.ForEach(Reader.Faces, face =>
+                    //Parallel.ForEach(Reader.Faces, face =>
+                    foreach (var face in Reader.Faces)
                     {
                         var FaceVertexes = face.VertexIds.ToList();
                         var FaceNormales = face.NormalIds.ToList();
                         var ZeroVertext = Vertexes[FaceVertexes[0] - 1];
-         
+
                         Vector3 PoliNormal = Vector3.Zero;
                         if (MainScene.Stage == Scene.LabaStage.Laba1)
                         {
@@ -286,16 +278,35 @@ namespace ObjVisualizer
                                 var triangle = Enumerable.Range(0, FaceVertexes.Count)
                                     .Select(i => MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i] - 1]))
                                     .ToList();
-                                float light = MainScene.Light.CalculateLight(new Vector3(Vertexes[FaceVertexes[0] - 1].X, 
+                                float light = MainScene.Light.CalculateLightLaba2(new Vector3(Vertexes[FaceVertexes[0] - 1].X,
                                     Vertexes[FaceVertexes[0] - 1].Y, Vertexes[FaceVertexes[0] - 1].Z), PoliNormal);
                                 drawer.Rasterize(triangle,
                                     Color.FromArgb(
                                         (byte)(light * 255 > 255 ? 255 : light * 255),
                                         (byte)(light * 255 > 255 ? 255 : light * 255),
-                                        (byte)(light * 255 > 255 ? 255: light * 255)));
+                                        (byte)(light * 255 > 255 ? 255 : light * 255)));
                             }
                         }
-                    });
+
+                        if (MainScene.Stage == Scene.LabaStage.Laba3)
+                        {
+                            if (Vector3.Dot(PoliNormal / FaceNormales.Count, -new Vector3(Vertexes[FaceVertexes[0] - 1].X,
+                          Vertexes[FaceVertexes[0] - 1].Y, Vertexes[FaceVertexes[0] - 1].Z) + MainScene.Camera.Eye) > 0)
+                            {
+                                var triangleVertexes = Enumerable.Range(0, FaceVertexes.Count)
+                                   .Select(i => MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i] - 1]))
+                                   .ToList();
+                                var triangleNormales = Enumerable.Range(0, FaceVertexes.Count)
+                                    .Select(i => Normales[FaceNormales[i] - 1])
+                                    .ToList();
+                                var originalVertexes = Enumerable.Range(0, FaceVertexes.Count)
+                                   .Select(i => Vertexes[FaceVertexes[i] - 1])
+                                   .ToList();
+                                drawer.Rasterize(triangleVertexes, triangleNormales,originalVertexes, MainScene);
+                            }
+                        }
+                        //});
+                    }
                 }
 
                 writableBitmap.AddDirtyRect(rect);
