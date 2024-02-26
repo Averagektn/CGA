@@ -17,6 +17,12 @@ namespace ObjVisualizer.GraphicsComponents
 
         public PointLight Light;
 
+        public bool Ambient { get => _ambient; set { _ambient = value; } }
+        public bool Specular { get => _specular; set { _specular = value; } }
+
+        private bool _ambient;
+        private bool _specular;
+
         public LabaStage Stage;
 
         public enum LabaStage
