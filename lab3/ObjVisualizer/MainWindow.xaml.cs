@@ -34,7 +34,7 @@ namespace ObjVisualizer
 
         public MainWindow()
         {
-            Reader = ObjReader.GetObjReader("Objects\\Sphere.obj");
+            Reader = ObjReader.GetObjReader("Objects\\Ship.obj");
 
             InitializeComponent();
 
@@ -222,8 +222,8 @@ namespace ObjVisualizer
                        MainScene.Camera.Radius * (float)Math.Cos(MainScene.Camera.CameraZeta),
                        MainScene.Camera.Radius * (float)Math.Sin(MainScene.Camera.CameraPhi) *
                        (float)Math.Sin(MainScene.Camera.CameraZeta));
-                //MainScene.Light = new PointLight(MainScene.Camera.Eye.X, MainScene.Camera.Eye.Y, MainScene.Camera.Eye.Z, 0.8f, MainScene.Ambient, MainScene.Specular);
-                MainScene.Light = new PointLight(0, 0,5, 0.8f, MainScene.Ambient, MainScene.Specular);
+                MainScene.Light = new PointLight(MainScene.Camera.Eye.X, MainScene.Camera.Eye.Y, MainScene.Camera.Eye.Z, 0.8f, MainScene.Ambient, MainScene.Specular);
+                //MainScene.Light = new PointLight(0, 0,5, 0.8f, MainScene.Ambient, MainScene.Specular);
 
                 MainScene.UpdateViewMatix();
 
