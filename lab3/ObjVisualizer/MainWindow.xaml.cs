@@ -30,11 +30,11 @@ namespace ObjVisualizer
         private int WindowHeight;
         private int FrameCount;
 
-        private int _windowScale = 1;
+        private int _windowScale = 2;
 
         public MainWindow()
         {
-            Reader = ObjReader.GetObjReader("Objects\\Sphere.obj");
+            Reader = ObjReader.GetObjReader("Objects\\manstar.obj");
 
             InitializeComponent();
 
@@ -63,7 +63,7 @@ namespace ObjVisualizer
 
 
             };
-            //RenderOptions.SetBitmapScalingMode(Image, BitmapScalingMode.HighQuality);
+            RenderOptions.SetBitmapScalingMode(Image, BitmapScalingMode.HighQuality);
 
             TextBlock = new TextBlock
             {
@@ -254,7 +254,6 @@ namespace ObjVisualizer
                           
                         }
                         if (isNeed)
-
                         {
 
 
