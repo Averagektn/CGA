@@ -70,6 +70,22 @@ namespace ObjVisualizer.GraphicsComponents
             ViewPortMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewPortMatrix(NewWindowWidth, NewWindowHeight));
         }
 
+        public Vector4 GetTransformedVertex(Vector4 Vertex, out bool isOut)
+        {
+            Vertex = Vector4.Transform(Vertex, ViewMatrix);
+            Vertex = Vector4.Transform(Vertex, ProjectionMatrix);
+            if (Vertex.Z > Camera.ZFar || Vertex.Z < Camera.ZNear)
+            {
+                isOut = false;
+            }
+            else
+            isOut = true;
+            Vertex = Vector4.Divide(Vertex, Vertex.W);
+            Vertex = Vector4.Transform(Vertex, ViewPortMatrix);
+
+            return Vertex;
+        }
+
         public Vector4 GetTransformedVertex(Vector4 Vertex)
         {
             Vertex = Vector4.Transform(Vertex, ViewMatrix);

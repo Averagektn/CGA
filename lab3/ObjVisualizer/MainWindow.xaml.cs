@@ -30,11 +30,11 @@ namespace ObjVisualizer
         private int WindowHeight;
         private int FrameCount;
 
-        private int _windowScale = 2;
+        private int _windowScale = 1;
 
         public MainWindow()
         {
-            Reader = ObjReader.GetObjReader("Objects\\Ship.obj");
+            Reader = ObjReader.GetObjReader("Objects\\Sphere.obj");
 
             InitializeComponent();
 
@@ -63,7 +63,7 @@ namespace ObjVisualizer
 
 
             };
-            RenderOptions.SetBitmapScalingMode(Image, BitmapScalingMode.HighQuality);
+            //RenderOptions.SetBitmapScalingMode(Image, BitmapScalingMode.HighQuality);
 
             TextBlock = new TextBlock
             {
@@ -247,75 +247,87 @@ namespace ObjVisualizer
                         var FaceNormales = face.NormalIds.ToList();
                         var ZeroVertext = Vertexes[FaceVertexes[0] - 1];
 
-                        Vector3 PoliNormal = Vector3.Zero;
-                        if (MainScene.Stage == Scene.LabaStage.Laba1)
+                        bool isNeed = true;
+                        for (int i =0; i < FaceVertexes.Count; i++)
                         {
-                            Vector4 TempVertexI = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[0] - 1]);
-                            Vector4 TempVertexJ = MainScene.GetTransformedVertex(Vertexes[FaceVertexes.Last() - 1]);
+                            var Temp = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i] - 1], out isNeed);
+                          
+                        }
+                        if (isNeed)
 
-                            if ((int)TempVertexI.X > 0 && (int)TempVertexJ.X > 0 &&
-                                        (int)TempVertexI.Y > 0 && (int)TempVertexJ.Y > 0 &&
-                                        (int)TempVertexI.X < WindowWidth && (int)TempVertexJ.X < WindowWidth &&
-                                        (int)TempVertexI.Y < WindowHeight && (int)TempVertexJ.Y < WindowHeight)
-                            {
-                                DrawLine((int)TempVertexI.X, (int)TempVertexI.Y, (int)TempVertexJ.X, (int)TempVertexJ.Y,
-                                    pixels, stride);
-                            }
+                        {
 
-                            for (int i = 0; i < FaceVertexes.Count - 1; i++)
+
+                            Vector3 PoliNormal = Vector3.Zero;
+                            if (MainScene.Stage == Scene.LabaStage.Laba1)
                             {
-                                TempVertexI = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i] - 1]);
-                                TempVertexJ = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i + 1] - 1]);
+                                Vector4 TempVertexI = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[0] - 1]);
+                                Vector4 TempVertexJ = MainScene.GetTransformedVertex(Vertexes[FaceVertexes.Last() - 1]);
 
                                 if ((int)TempVertexI.X > 0 && (int)TempVertexJ.X > 0 &&
-                                    (int)TempVertexI.Y > 0 && (int)TempVertexJ.Y > 0 &&
-                                    (int)TempVertexI.X < WindowWidth && (int)TempVertexJ.X < WindowWidth &&
-                                    (int)TempVertexI.Y < WindowHeight && (int)TempVertexJ.Y < WindowHeight)
+                                            (int)TempVertexI.Y > 0 && (int)TempVertexJ.Y > 0 &&
+                                            (int)TempVertexI.X < WindowWidth && (int)TempVertexJ.X < WindowWidth &&
+                                            (int)TempVertexI.Y < WindowHeight && (int)TempVertexJ.Y < WindowHeight)
                                 {
                                     DrawLine((int)TempVertexI.X, (int)TempVertexI.Y, (int)TempVertexJ.X, (int)TempVertexJ.Y,
                                         pixels, stride);
                                 }
-                            }
-                        }
 
-                        for (int i = 0; i < FaceNormales.Count; i++)
-                        {
-                            PoliNormal += Normales[FaceNormales[i] - 1];
-                        }
-                        if (MainScene.Stage == Scene.LabaStage.Laba2)
-                        {
-                            if (Vector3.Dot(PoliNormal / FaceNormales.Count, -new Vector3(Vertexes[FaceVertexes[0] - 1].X,
-                          Vertexes[FaceVertexes[0] - 1].Y, Vertexes[FaceVertexes[0] - 1].Z) + MainScene.Camera.Eye) > 0)
-                            {
-                                // RASTRIZATION
-                                var triangle = Enumerable.Range(0, FaceVertexes.Count)
-                                    .Select(i => MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i] - 1]))
-                                    .ToList();
-                                float light = MainScene.Light.CalculateLightLaba2(new Vector3(Vertexes[FaceVertexes[0] - 1].X,
-                                    Vertexes[FaceVertexes[0] - 1].Y, Vertexes[FaceVertexes[0] - 1].Z), PoliNormal);
-                                drawer.Rasterize(triangle,
-                                    Color.FromArgb(
-                                        (byte)(light * 255 > 255 ? 255 : light * 255),
-                                        (byte)(light * 255 > 255 ? 255 : light * 255),
-                                        (byte)(light * 255 > 255 ? 255 : light * 255)));
-                            }
-                        }
+                                for (int i = 0; i < FaceVertexes.Count - 1; i++)
+                                {
+                                    TempVertexI = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i] - 1]);
+                                    TempVertexJ = MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i + 1] - 1]);
 
-                        if (MainScene.Stage == Scene.LabaStage.Laba3)
-                        {
-                            if (Vector3.Dot(PoliNormal / FaceNormales.Count, -new Vector3(Vertexes[FaceVertexes[0] - 1].X,
-                          Vertexes[FaceVertexes[0] - 1].Y, Vertexes[FaceVertexes[0] - 1].Z) + MainScene.Camera.Eye) > 0)
+                                    if ((int)TempVertexI.X > 0 && (int)TempVertexJ.X > 0 &&
+                                        (int)TempVertexI.Y > 0 && (int)TempVertexJ.Y > 0 &&
+                                        (int)TempVertexI.X < WindowWidth && (int)TempVertexJ.X < WindowWidth &&
+                                        (int)TempVertexI.Y < WindowHeight && (int)TempVertexJ.Y < WindowHeight)
+                                    {
+                                        DrawLine((int)TempVertexI.X, (int)TempVertexI.Y, (int)TempVertexJ.X, (int)TempVertexJ.Y,
+                                            pixels, stride);
+                                    }
+                                }
+                            }
+
+                            for (int i = 0; i < FaceNormales.Count; i++)
                             {
-                                var triangleVertexes = Enumerable.Range(0, FaceVertexes.Count)
-                                   .Select(i => MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i] - 1]))
-                                   .ToList();
-                                var triangleNormales = Enumerable.Range(0, FaceVertexes.Count)
-                                    .Select(i => Normales[FaceNormales[i] - 1])
-                                    .ToList();
-                                var originalVertexes = Enumerable.Range(0, FaceVertexes.Count)
-                                   .Select(i => Vertexes[FaceVertexes[i] - 1])
-                                   .ToList();
-                                drawer.Rasterize(triangleVertexes, triangleNormales,originalVertexes, MainScene);
+                                PoliNormal += Normales[FaceNormales[i] - 1];
+                            }
+                            if (MainScene.Stage == Scene.LabaStage.Laba2)
+                            {
+                                if (Vector3.Dot(PoliNormal / FaceNormales.Count, -new Vector3(Vertexes[FaceVertexes[0] - 1].X,
+                              Vertexes[FaceVertexes[0] - 1].Y, Vertexes[FaceVertexes[0] - 1].Z) + MainScene.Camera.Eye) > 0)
+                                {
+                                    // RASTRIZATION
+                                    var triangle = Enumerable.Range(0, FaceVertexes.Count)
+                                        .Select(i => MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i] - 1]))
+                                        .ToList();
+                                    float light = MainScene.Light.CalculateLightLaba2(new Vector3(Vertexes[FaceVertexes[0] - 1].X,
+                                        Vertexes[FaceVertexes[0] - 1].Y, Vertexes[FaceVertexes[0] - 1].Z), PoliNormal);
+                                    drawer.Rasterize(triangle,
+                                        Color.FromArgb(
+                                            (byte)(light * 255 > 255 ? 255 : light * 255),
+                                            (byte)(light * 255 > 255 ? 255 : light * 255),
+                                            (byte)(light * 255 > 255 ? 255 : light * 255)));
+                                }
+                            }
+
+                            if (MainScene.Stage == Scene.LabaStage.Laba3)
+                            {
+                                if (Vector3.Dot(PoliNormal / FaceNormales.Count, -new Vector3(Vertexes[FaceVertexes[0] - 1].X,
+                              Vertexes[FaceVertexes[0] - 1].Y, Vertexes[FaceVertexes[0] - 1].Z) + MainScene.Camera.Eye) > 0)
+                                {
+                                    var triangleVertexes = Enumerable.Range(0, FaceVertexes.Count)
+                                       .Select(i => MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i] - 1]))
+                                       .ToList();
+                                    var triangleNormales = Enumerable.Range(0, FaceVertexes.Count)
+                                        .Select(i => Normales[FaceNormales[i] - 1])
+                                        .ToList();
+                                    var originalVertexes = Enumerable.Range(0, FaceVertexes.Count)
+                                       .Select(i => Vertexes[FaceVertexes[i] - 1])
+                                       .ToList();
+                                    drawer.Rasterize(triangleVertexes, triangleNormales, originalVertexes, MainScene);
+                                }
                             }
                         }
                     });

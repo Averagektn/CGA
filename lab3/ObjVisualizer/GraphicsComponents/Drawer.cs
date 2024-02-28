@@ -15,6 +15,8 @@ namespace ObjVisualizer.GraphicsComponents
 
         private readonly IntPtr Buffer = drawBuffer;
 
+        private SpinLock sl = new SpinLock();
+
         private readonly int _width = width;
         private readonly int _height = height;
         private readonly int _stride = stride;
@@ -301,16 +303,24 @@ namespace ObjVisualizer.GraphicsComponents
                             if (x < 0 || x >= _width)
                                 continue;
                             var z = zscan[x - xl];
-                            if (z < ZBuffer[y][x])
+                            bool GotLock = false;
+                            try
                             {
-                                ZBuffer[y][x] = z;
-                                byte* pixelPtr = data + y * _stride + x * 3;
-                                var vertex = new Vector3(rxscan[x - xl], ryscan[x - xl], rzscan[x - xl]);
-                                var normal = new Vector3(nxscan[x - xl], nyscan[x - xl], nzscan[x - xl]);
-                                Color color = CalculateColor( vertex, Vector3.Normalize(normal), scene, baseColor);
-                                *pixelPtr++ = color.B;
-                                *pixelPtr++ = color.G;
-                                *pixelPtr = color.R;
+                                sl.Enter(ref GotLock);
+                                if (z < ZBuffer[y][x])
+                                {
+                                    ZBuffer[y][x] = z;
+                                    byte* pixelPtr = data + y * _stride + x * 3;
+                                    var vertex = new Vector3(rxscan[x - xl], ryscan[x - xl], rzscan[x - xl]);
+                                    var normal = new Vector3(nxscan[x - xl], nyscan[x - xl], nzscan[x - xl]);
+                                    Color color = CalculateColor(vertex, Vector3.Normalize(normal), scene, baseColor);
+                                    *pixelPtr++ = color.B;
+                                    *pixelPtr++ = color.G;
+                                    *pixelPtr = color.R;
+                                }
+                            }finally
+                            {
+                                if (GotLock) sl.Exit();
                             }
 
                         }
