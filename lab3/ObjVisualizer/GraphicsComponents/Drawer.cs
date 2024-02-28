@@ -306,10 +306,9 @@ namespace ObjVisualizer.GraphicsComponents
                                 continue;
                             var z = zscan[x - xl];
                             bool GotLock = false;
-
-                            try
-                            {
-                                sl.Enter(ref GotLock);
+                            //try
+                            //{
+                            //    //sl.Enter(ref GotLock);
                                 if (z < ZBuffer[y][x])
                                 {
                                     ZBuffer[y][x] = z;
@@ -321,10 +320,10 @@ namespace ObjVisualizer.GraphicsComponents
                                     *pixelPtr++ = color.G;
                                     *pixelPtr = color.R;
                                 }
-                            }finally
-                            {
-                                if (GotLock) sl.Exit();
-                            }
+                            //}finally
+                            //{
+                            //    //if (GotLock) sl.Exit();
+                            //}
 
                         }
 
