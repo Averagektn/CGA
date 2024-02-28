@@ -34,7 +34,7 @@ namespace ObjVisualizer
 
         public MainWindow()
         {
-            Reader = ObjReader.GetObjReader("Objects\\Sphere.obj");
+            Reader = ObjReader.GetObjReader("Objects\\manstar.obj");
 
             InitializeComponent();
 

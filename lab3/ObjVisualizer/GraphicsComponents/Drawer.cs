@@ -168,9 +168,9 @@ namespace ObjVisualizer.GraphicsComponents
         {
             var light = scene.Light.CalculateLightLaba3(point, normal, scene.Camera.Eye);
             var color = Color.FromArgb(
-                (byte)(light * baseColor.R > 255 ? 255 : light*baseColor.R),
-                (byte)(light * baseColor.G > 255 ? 255 : light * baseColor.G),
-                (byte)(light * baseColor.B > 255 ? 255 : light * baseColor.B));
+                (byte)(light.X * baseColor.R > 255 ? 255 : light.X*baseColor.R),
+                (byte)(light.Y * baseColor.G > 255 ? 255 : light.Y * baseColor.G),
+                (byte)(light.Z * baseColor.B > 255 ? 255 : light.Z * baseColor.B));
             return color;
         }
 
@@ -304,9 +304,9 @@ namespace ObjVisualizer.GraphicsComponents
                                 continue;
                             var z = zscan[x - xl];
                             bool GotLock = false;
-                            try
-                            {
-                                sl.Enter(ref GotLock);
+                            //try
+                            //{
+                            //    //sl.Enter(ref GotLock);
                                 if (z < ZBuffer[y][x])
                                 {
                                     ZBuffer[y][x] = z;
@@ -318,10 +318,10 @@ namespace ObjVisualizer.GraphicsComponents
                                     *pixelPtr++ = color.G;
                                     *pixelPtr = color.R;
                                 }
-                            }finally
-                            {
-                                if (GotLock) sl.Exit();
-                            }
+                            //}finally
+                            //{
+                            //    //if (GotLock) sl.Exit();
+                            //}
 
                         }
 
