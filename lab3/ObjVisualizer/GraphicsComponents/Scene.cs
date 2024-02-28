@@ -74,6 +74,7 @@ namespace ObjVisualizer.GraphicsComponents
         {
             Vertex = Vector4.Transform(Vertex, ViewMatrix);
             Vertex = Vector4.Transform(Vertex, ProjectionMatrix);
+
             if (Vertex.Z < Vertex.W)
             {
                 isOut = false;
