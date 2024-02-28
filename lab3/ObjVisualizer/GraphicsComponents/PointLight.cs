@@ -11,6 +11,7 @@ namespace ObjVisualizer.GraphicsComponents
 
         private readonly bool ambient = ambient;
         private readonly bool specular = specular;
+        private readonly Vector3 LightColor = new(1, 1f, 1);
 
         public float CalculateLightLaba2(Vector3 point, Vector3 normal)
         {
@@ -26,27 +27,31 @@ namespace ObjVisualizer.GraphicsComponents
            
             return lightResult;
         }
-        public float CalculateLightLaba3(Vector3 point, Vector3 normal, Vector3 eye)
+        public Vector3 CalculateLightLaba3(Vector3 point, Vector3 normal, Vector3 eye)
         {
             Vector3 l = new Vector3(X, Y, Z) - point;
-            int s = 100;
-            float lightResult = 0;
-            if (ambient)
-                lightResult += .02f;
-            float angle = Vector3.Dot(normal, l);
+            int s = 1;
+           ;
+            Vector3 lightResult = new(0, 0, 0);
+            //if (ambient)
+            //    lightResult += .02f;
+            float angle = Vector3.Dot(normal, l)/(l.Length()*normal.Length());
 
             if (angle > 0)
             {
-                lightResult = Intency * angle / (l.Length() * normal.Length());
+                var color = 0f * LightColor * Intency *angle;
+                lightResult = Vector3.Add(lightResult, color);
             }
             if (specular)
             {
-                Vector3 R = 2 * normal * angle - l;
+                Vector3 R = -2 * normal * angle + l;
                 Vector3 V = eye - point;
-                float r_dot_v = Vector3.Dot(R, V);
+                float r_dot_v = Vector3.Dot(R, V)/(R.Length() * V.Length());
                 if (r_dot_v > 0)
                 {
-                    lightResult += Intency * float.Pow(r_dot_v / (R.Length() * V.Length()), s);
+                    var color = 1f * LightColor* float.Pow(r_dot_v , s);
+                    lightResult =  Vector3.Add(lightResult, color);
+                    //lightResult *= 1f*Intency * float.Pow(r_dot_v / (R.Length() * V.Length()), s);
                 }
             }
            

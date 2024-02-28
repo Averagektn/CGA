@@ -168,9 +168,9 @@ namespace ObjVisualizer.GraphicsComponents
         {
             var light = scene.Light.CalculateLightLaba3(point, normal, scene.Camera.Eye);
             var color = Color.FromArgb(
-                (byte)(light * baseColor.R > 255 ? 255 : light*baseColor.R),
-                (byte)(light * baseColor.G > 255 ? 255 : light * baseColor.G),
-                (byte)(light * baseColor.B > 255 ? 255 : light * baseColor.B));
+                (byte)(light.X * baseColor.R > 255 ? 255 : light.X* baseColor.R),
+                (byte)(light.Y * baseColor.G > 255 ? 255 : light.Y * baseColor.G),
+                (byte)(light.Z * baseColor.B > 255 ? 255 : light.Z * baseColor.B));
             return color;
         }
 
@@ -189,7 +189,7 @@ namespace ObjVisualizer.GraphicsComponents
             (triangle.B.X > 0 && triangle.B.Y > 0 && triangle.B.X < _width && triangle.B.Y < _height) ||
             (triangle.C.X > 0 && triangle.C.Y > 0 && triangle.C.X < _width && triangle.C.Y < _height))
             {
-                Color baseColor = Color.White;
+                Color baseColor = Color.Gold;
                 byte* data = (byte*)Buffer.ToPointer();
                 if (triangle.B.Y < triangle.A.Y)
                 {
@@ -298,12 +298,15 @@ namespace ObjVisualizer.GraphicsComponents
                         var rxscan = Interpolate(xl, rxl, xr, rxr);
                         var ryscan = Interpolate(xl, ryl, xr, ryr);
                         var rzscan = Interpolate(xl, rzl, xr, rzr);
+
+
                         for (int x = xl; x < xr; x++)
                         {
                             if (x < 0 || x >= _width)
                                 continue;
                             var z = zscan[x - xl];
                             bool GotLock = false;
+
                             try
                             {
                                 sl.Enter(ref GotLock);
@@ -332,20 +335,7 @@ namespace ObjVisualizer.GraphicsComponents
             }
         }
 
-        private unsafe void RasterizeTriangle(Triangle triangle)
-        {
-            foreach (var line in triangle.GetHorizontalLines())
-            {
-                if (line.Left.X > 0 && line.Left.Y > 0 &&
-                    line.Right.X > 0 && line.Right.Y > 0 &&
-                    line.Left.X < _width && line.Left.Y < _height &&
-                    line.Right.X < _width && line.Right.Y < _height)
-                {
-                    DrawLine(line.Left, line.Right, (byte*)Buffer.ToPointer(), Color.White);
-                }
-            }
-        }
-
+       
         public unsafe void DrawLine(Vector3 p1, Vector3 p2, byte* data, Color color)
         {
             int x1 = (int)p1.X;

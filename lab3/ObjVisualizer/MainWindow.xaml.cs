@@ -30,7 +30,7 @@ namespace ObjVisualizer
         private int WindowHeight;
         private int FrameCount;
 
-        private int _windowScale = 2;
+        private int _windowScale = 1;
 
         public MainWindow()
         {
@@ -63,7 +63,7 @@ namespace ObjVisualizer
 
 
             };
-            RenderOptions.SetBitmapScalingMode(Image, BitmapScalingMode.HighQuality);
+            //RenderOptions.SetBitmapScalingMode(Image, BitmapScalingMode.HighQuality);
 
             TextBlock = new TextBlock
             {
@@ -93,13 +93,13 @@ namespace ObjVisualizer
                 WindowWidth/ (float)WindowHeight, 70.0f * ((float)Math.PI / 180.0f), 10.0f, 0.1f);
 
 
-            MainScene.ModelMatrix = Matrix4x4.Transpose(MatrixOperator.Scale(new Vector3(1f, 1f, 1f)) * MatrixOperator.Move(new Vector3(0, 0f, 0)));
+            MainScene.ModelMatrix = Matrix4x4.Transpose(MatrixOperator.Scale(new Vector3(.1f, .1f, .1f)) * MatrixOperator.Move(new Vector3(0, 0f, 0)));
             MainScene.ChangeStatus = true;
             MainScene.Camera.Eye = new Vector3(
                         MainScene.Camera.Radius * (float)Math.Cos(MainScene.Camera.CameraPhi) * (float)Math.Sin(MainScene.Camera.CameraZeta),
                         MainScene.Camera.Radius * (float)Math.Cos(MainScene.Camera.CameraZeta),
                         MainScene.Camera.Radius * (float)Math.Sin(MainScene.Camera.CameraPhi) * (float)Math.Sin(MainScene.Camera.CameraZeta));
-            MainScene.Light = new PointLight(MainScene.Camera.Eye.X, MainScene.Camera.Eye.Y, MainScene.Camera.Eye.Z, 0.8f, false,false);
+            MainScene.Light = new PointLight(MainScene.Camera.Eye.X, MainScene.Camera.Eye.Y, MainScene.Camera.Eye.Z, 0.6f, false,false);
             MainScene.ViewMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewMatrix(MainScene.Camera));
             MainScene.ProjectionMatrix = Matrix4x4.Transpose(MatrixOperator.GetProjectionMatrix(MainScene.Camera));
             MainScene.ViewPortMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewPortMatrix(WindowWidth, WindowHeight));
@@ -222,7 +222,7 @@ namespace ObjVisualizer
                        MainScene.Camera.Radius * (float)Math.Cos(MainScene.Camera.CameraZeta),
                        MainScene.Camera.Radius * (float)Math.Sin(MainScene.Camera.CameraPhi) *
                        (float)Math.Sin(MainScene.Camera.CameraZeta));
-                MainScene.Light = new PointLight(MainScene.Camera.Eye.X, MainScene.Camera.Eye.Y, MainScene.Camera.Eye.Z, 0.8f, MainScene.Ambient, MainScene.Specular);
+                MainScene.Light = new PointLight(MainScene.Camera.Eye.X, MainScene.Camera.Eye.Y, MainScene.Camera.Eye.Z, 0.6f, MainScene.Ambient, MainScene.Specular);
                 //MainScene.Light = new PointLight(0, 0,5, 0.8f, MainScene.Ambient, MainScene.Specular);
 
                 MainScene.UpdateViewMatix();
