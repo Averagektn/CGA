@@ -189,7 +189,7 @@ namespace ObjVisualizer.GraphicsComponents
             (triangle.B.X > 0 && triangle.B.Y > 0 && triangle.B.X < _width && triangle.B.Y < _height) ||
             (triangle.C.X > 0 && triangle.C.Y > 0 && triangle.C.X < _width && triangle.C.Y < _height))
             {
-                Color baseColor = Color.Gold;
+                Color baseColor = Color.White;
                 byte* data = (byte*)Buffer.ToPointer();
                 if (triangle.B.Y < triangle.A.Y)
                 {
