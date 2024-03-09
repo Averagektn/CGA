@@ -30,11 +30,11 @@ namespace ObjVisualizer
         private int WindowHeight;
         private int FrameCount;
 
-        private int _windowScale = 1;
+        private int _windowScale = 2;
 
         public MainWindow()
         {
-            Reader = ObjReader.GetObjReader("Objects\\manstar.obj");
+            Reader = ObjReader.GetObjReader("Objects\\Shovel Knight\\shovel_low.obj");
 
             InitializeComponent();
 
@@ -63,7 +63,7 @@ namespace ObjVisualizer
 
 
             };
-            //RenderOptions.SetBitmapScalingMode(Image, BitmapScalingMode.HighQuality);
+            RenderOptions.SetBitmapScalingMode(Image, BitmapScalingMode.HighQuality);
 
             TextBlock = new TextBlock
             {
@@ -89,7 +89,7 @@ namespace ObjVisualizer
             MainScene = Scene.GetScene();
             MainScene.Stage = Scene.LabaStage.Laba1;
 
-            MainScene.Camera = new Camera(new Vector3(0, 0f, 0f), new Vector3(0, 1, 0), new Vector3(0, 0, -1),
+            MainScene.Camera = new Camera(new Vector3(0, 0f, -1f), new Vector3(0, 1, 0), new Vector3(0, 0, 0),
                 WindowWidth/ (float)WindowHeight, 70.0f * ((float)Math.PI / 180.0f), 10.0f, 0.1f);
 
 
@@ -326,6 +326,15 @@ namespace ObjVisualizer
                                        .Select(i => Vertexes[FaceVertexes[i] - 1])
                                        .ToList();
                                     drawer.Rasterize(triangleVertexes, triangleNormales, originalVertexes, MainScene);
+                                }
+                            }
+
+                            if (MainScene.Stage is Scene.LabaStage.Laba4)
+                            {
+                                if (Vector3.Dot(PoliNormal / FaceNormales.Count, -new Vector3(Vertexes[FaceVertexes[0] - 1].X,
+                              Vertexes[FaceVertexes[0] - 1].Y, Vertexes[FaceVertexes[0] - 1].Z) + MainScene.Camera.Eye) > 0)
+                                {
+
                                 }
                             }
                         }

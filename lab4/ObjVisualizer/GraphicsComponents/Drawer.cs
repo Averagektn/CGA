@@ -12,10 +12,12 @@ namespace ObjVisualizer.GraphicsComponents
         private readonly List<List<double>> ZBuffer = Enumerable.Range(0, height)
             .Select(_ => Enumerable.Repeat(double.MaxValue, width).ToList())
             .ToList();
+        //private readonly List<List<SpinLock>> SpincLocker= Enumerable.Range(0, height)
+        //   .Select(_ => Enumerable.Repeat(new SpinLock(), width).ToList())
+        //   .ToList();
+        //private bool[,] SpincLockerBoolean = new bool[height,width];
 
         private readonly IntPtr Buffer = drawBuffer;
-
-        private SpinLock sl = new SpinLock();
 
         private readonly int _width = width;
         private readonly int _height = height;
@@ -265,22 +267,22 @@ namespace ObjVisualizer.GraphicsComponents
                 }
                 int YDiffTop = 0;
                 int YDiffTopI = 0;
-                int TopY = (int)float.Round(triangle.A.Y, 0);
+                int TopY = (int)float.Round(triangle.A.Y);
                 if (triangle.A.Y < 0)
                 {
-                    YDiffTop = -(int)float.Round(triangle.A.Y, 0);
-                    YDiffTopI = (int)float.Round(triangle.C.Y, 0);
+                    YDiffTop = -(int)float.Round(triangle.A.Y);
+                    YDiffTopI = (int)float.Round(triangle.C.Y);
                     TopY = 0;
                 }
-                for (int y = TopY; y <= (int)float.Round(triangle.C.Y, 0); y++)
+                for (int y = TopY; y <= (int)float.Round(triangle.C.Y); y++)
                 {
                     if (y < 0 || y >= _height)
                         continue;
                     var index = (y - TopY + YDiffTop);
                     //if (index < x_left.Count && index < x_right.Count)
                     {
-                        var xl = (int)float.Round(x_left[index], 0);
-                        var xr = (int)float.Round(x_right[index], 0);
+                        var xl = (int)float.Round(x_left[index]);
+                        var xr = (int)float.Round(x_right[index]);
                         var zl = z_left[index];
                         var zr = z_right[index];
                         (var nxl, var nxr) = (nx_left[index], nx_right[index]);
@@ -300,15 +302,15 @@ namespace ObjVisualizer.GraphicsComponents
                         var rzscan = Interpolate(xl, rzl, xr, rzr);
 
 
-                        for (int x = xl; x < xr; x++)
+                        for (int x = xl; x <= xr; x++)
                         {
                             if (x < 0 || x >= _width)
                                 continue;
                             var z = zscan[x - xl];
-                            bool GotLock = false;
+
                             //try
                             //{
-                            //    //sl.Enter(ref GotLock);
+                            //    SpincLocker[y][x].Enter(ref SpincLockerBoolean[y, x]);
                                 if (z < ZBuffer[y][x])
                                 {
                                     ZBuffer[y][x] = z;
@@ -320,11 +322,15 @@ namespace ObjVisualizer.GraphicsComponents
                                     *pixelPtr++ = color.G;
                                     *pixelPtr = color.R;
                                 }
-                            //}finally
-                            //{
-                            //    //if (GotLock) sl.Exit();
                             //}
+                            //finally
+                            //{
+                            //    if (SpincLockerBoolean[y, x])
+                            //    {
+                            //        SpincLocker[y][x].Exit();
+                            //    }
 
+                            //}
                         }
 
                     }
@@ -335,72 +341,6 @@ namespace ObjVisualizer.GraphicsComponents
         }
 
        
-        public unsafe void DrawLine(Vector3 p1, Vector3 p2, byte* data, Color color)
-        {
-            int x1 = (int)p1.X;
-            int y1 = (int)p1.Y;
-            float z1 = p1.Z;
-            int x2 = (int)p2.X;
-            int y2 = (int)p2.Y;
-            float z2 = p2.Z;
-
-            var zDiff = z1 - z2;
-            var distance = Math.Sqrt(Math.Pow(x1 - x2, 2) + Math.Pow(y1 - y2, 2));
-            var zStep = distance == 0 ? 0 : zDiff / distance;
-
-            bool step = Math.Abs(y2 - y1) > Math.Abs(x2 - x1);
-
-            if (step)
-            {
-                (x1, y1) = (y1, x1);
-                (x2, y2) = (y2, x2);
-            }
-
-            if (x1 > x2)
-            {
-                (x1, x2) = (x2, x1);
-                (y1, y2) = (y2, y1);
-            }
-
-            int dx = x2 - x1;
-            int dy = Math.Abs(y2 - y1);
-            int error = dx / 2;
-            int ystep = (y1 < y2) ? 1 : -1;
-            int y = y1;
-            int row, col;
-
-            for (int x = x1; x <= x2; x++)
-            {
-                if (step)
-                {
-                    row = x;
-                    col = y;
-                }
-                else
-                {
-                    row = y;
-                    col = x;
-                }
-
-                if (ZBuffer[row][col] > z1 + zStep * (x - x1))
-                {
-                    byte* pixelPtr = data + row * _stride + col * 3;
-
-                    ZBuffer[row][col] = z1 + zStep * (x - x1);
-
-                    *pixelPtr++ = color.B;
-                    *pixelPtr++ = color.G;
-                    *pixelPtr = color.R;
-                }
-
-                error -= dy;
-
-                if (error < 0)
-                {
-                    y += ystep;
-                    error += dx;
-                }
-            }
-        }
+      
     }
 }

@@ -28,6 +28,9 @@
     <None Update="Objects\Monkey.obj">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Objects\Shovel Knight\shovel_low.obj">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Objects\Shrek.obj">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
