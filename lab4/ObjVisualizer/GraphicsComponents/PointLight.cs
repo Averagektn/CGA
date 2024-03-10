@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace ObjVisualizer.GraphicsComponents
 {
@@ -39,6 +40,8 @@ namespace ObjVisualizer.GraphicsComponents
            
             return lightResult;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector3 CalculateLightWithSpecular(Vector3 point, Vector3 normal, Vector3 eye)
         {
             Vector3 l = new Vector3(X, Y, Z) - point;
@@ -68,6 +71,7 @@ namespace ObjVisualizer.GraphicsComponents
             return lightResult;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector3 CalculateLightWithMaps(Vector3 point, Vector3 normal, Vector3 eye, float specIntenc)
         {
             Vector3 l = new Vector3(X, Y, Z) - point;

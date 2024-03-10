@@ -12,10 +12,10 @@ namespace ObjVisualizer.GraphicsComponents
         private readonly List<List<double>> ZBuffer = Enumerable.Range(0, height)
             .Select(_ => Enumerable.Repeat(double.MaxValue, width).ToList())
             .ToList();
-        //private readonly List<List<SpinLock>> SpincLocker= Enumerable.Range(0, height)
-        //   .Select(_ => Enumerable.Repeat(new SpinLock(), width).ToList())
-        //   .ToList();
-        //private bool[,] SpincLockerBoolean = new bool[height,width];
+        private readonly List<List<Object>> SpincLocker = Enumerable.Range(0, height)
+           .Select(_ => Enumerable.Repeat(new Object(), width).ToList())
+           .ToList();
+        private bool[,] SpincLockerBoolean = new bool[height, width];
 
         private readonly IntPtr Buffer = drawBuffer;
 
@@ -351,35 +351,32 @@ namespace ObjVisualizer.GraphicsComponents
                                 continue;
                             var z = zscan[x - xl];
 
-                            //try
-                            //{
-                            //    SpincLocker[y][x].Enter(ref SpincLockerBoolean[y, x]);
-                            if (z < ZBuffer[y][x])
+                            lock (SpincLocker[y][x])
                             {
-                                ZBuffer[y][x] = z;
-                                byte* pixelPtr = data + y * _stride + x * 3;
-                                var vertex = new Vector3(rxscan[x - xl], ryscan[x - xl], rzscan[x - xl]);
-                                //Color color = Color.Blue ;
-                                //Color color = CalculateColor(vertex, Vector3.Normalize(normal), scene, baseColor);
-                                int textureByteKd = (int)((1-vscan[x - xl]) * scene.GraphicsObjects.KdMap.Height) * scene.GraphicsObjects.KdMap.Stride + (int)(uscan[x - xl] * scene.GraphicsObjects.KdMap.Width) * scene.GraphicsObjects.KdMap.ColorSIze/ 8;
-                                int textureByteNorm = (int)((1 - vscan[x - xl]) * scene.GraphicsObjects.NormMap.Height) * scene.GraphicsObjects.NormMap.Stride + (int)(uscan[x - xl] * scene.GraphicsObjects.NormMap.Width) * scene.GraphicsObjects.NormMap.ColorSIze / 8;
-                                int textureByteMrao = (int)((1 - vscan[x - xl]) * scene.GraphicsObjects.MraoMap.Height) * scene.GraphicsObjects.MraoMap.Stride + (int)(uscan[x - xl] * scene.GraphicsObjects.MraoMap.Width) * scene.GraphicsObjects.MraoMap.ColorSIze / 8;
-                                Vector3 normal = new Vector3((scene.GraphicsObjects.NormMap.MapData[textureByteNorm + 0] / 255.0f) * 2 - 1, (scene.GraphicsObjects.NormMap.MapData[textureByteNorm + 1] / 255.0f) * 2 - 1, (scene.GraphicsObjects.NormMap.MapData[textureByteNorm + 2] / 255.0f) * 2 - 1);
-                                Vector3 lightResult = scene.Light.CalculateLightWithMaps(vertex, normal, scene.Camera.Eye, scene.GraphicsObjects.MraoMap.MapData[textureByteMrao + 0]);
-                                //Vector3 lightResult = new(1f, 1f, 1f);
-                                *pixelPtr++ = (byte)(scene.GraphicsObjects.KdMap.MapData[textureByteKd +0] * (lightResult.X > 1 ? 1 : lightResult.X));
-                                *pixelPtr++ = (byte)(scene.GraphicsObjects.KdMap.MapData[textureByteKd +1] * (lightResult.Y > 1 ? 1 : lightResult.Y));
-                                *pixelPtr = (byte)(scene.GraphicsObjects.KdMap.MapData[textureByteKd + 2] * (lightResult.Z > 1 ? 1 : lightResult.Z));
-                            }
-                            //}
-                            //finally
-                            //{
-                            //    if (SpincLockerBoolean[y, x])
-                            //    {
-                            //        SpincLocker[y][x].Exit();
-                            //    }
+                                if (z < ZBuffer[y][x])
+                                {
 
-                            //}
+                                    ZBuffer[y][x] = z;
+                                    byte* pixelPtr = data + y * _stride + x * 3;
+                                    var vertex = new Vector3(rxscan[x - xl], ryscan[x - xl], rzscan[x - xl]);
+                                    var tx = uscan[x - xl] * scene.GraphicsObjects.KdMap.Width;
+                                    var ty = (1 - vscan[x - xl]) * scene.GraphicsObjects.KdMap.Height;
+                                    //int textureByteKd = (int)((1 - vscan[x - xl]) * scene.GraphicsObjects.KdMap.Height) * scene.GraphicsObjects.KdMap.Stride + (int)(uscan[x - xl] * scene.GraphicsObjects.KdMap.Width) * scene.GraphicsObjects.KdMap.ColorSize / 8;
+                                    Vector3 newColor = GetNewTextel(tx, ty, scene.GraphicsObjects.KdMap);
+                                    //Vector3 newColor = new(scene.GraphicsObjects.KdMap.MapData[textureByteKd], scene.GraphicsObjects.KdMap.MapData[textureByteKd + 1], scene.GraphicsObjects.KdMap.MapData[textureByteKd + 2]);
+                                    int textureByteNorm = (int)((1 - vscan[x - xl]) * scene.GraphicsObjects.NormMap.Height) * scene.GraphicsObjects.NormMap.Stride + (int)(uscan[x - xl] * scene.GraphicsObjects.NormMap.Width) * scene.GraphicsObjects.NormMap.ColorSize / 8;
+                                    int textureByteMrao = (int)((1 - vscan[x - xl]) * scene.GraphicsObjects.MraoMap.Height) * scene.GraphicsObjects.MraoMap.Stride + (int)(uscan[x - xl] * scene.GraphicsObjects.MraoMap.Width) * scene.GraphicsObjects.MraoMap.ColorSize / 8;
+                                    Vector3 normal = new Vector3((scene.GraphicsObjects.NormMap.MapData[textureByteNorm + 2] / 255.0f) * 2 - 1, (scene.GraphicsObjects.NormMap.MapData[textureByteNorm + 1] / 255.0f) * 2 - 1, (scene.GraphicsObjects.NormMap.MapData[textureByteNorm + 0] / 255.0f) * 2 - 1);
+                                    Vector3 lightResult = new(0, 0, 0);
+                                    for (int i = 0; i < scene.Light.Count; i++)
+                                        lightResult += scene.Light[i].CalculateLightWithMaps(vertex, normal, scene.Camera.Eye, scene.GraphicsObjects.MraoMap.MapData[textureByteMrao + 0]);
+                                    //Vector3 lightResult = new(1f, 1f, 1f);
+                                    *pixelPtr++ = (byte)(newColor.X * (lightResult.X > 1 ? 1 : lightResult.X));
+                                    *pixelPtr++ = (byte)(newColor.Y * (lightResult.Y > 1 ? 1 : lightResult.Y));
+                                    *pixelPtr = (byte)(newColor.Z * (lightResult.Z > 1 ? 1 : lightResult.Z));
+                                }
+                            }
+
                         }
 
                     }
@@ -389,9 +386,36 @@ namespace ObjVisualizer.GraphicsComponents
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private Vector3 GetNewTextel(float tx, float ty, ImageData image)
+        {
+            var fx = tx - float.Floor(tx);
+            var fy = ty - float.Floor(ty);
+            tx = float.Floor(tx);
+            ty = float.Floor(ty);
+
+            var TLIndex = (int)(ty * image.Stride + tx * image.ColorSize / 8);
+            var TRIndex = (int)(ty * image.Stride + (tx + 1) * image.ColorSize / 8);
+            var BLIndex = (int)((ty + 1) * image.Stride + tx * image.ColorSize / 8);
+            var BRIndex = (int)((ty + 1) * image.Stride + (tx + 1) * image.ColorSize / 8);
+            var TL = new Vector3(image.MapData[TLIndex], image.MapData[TLIndex + 1], image.MapData[TLIndex + 2]);
+            var TR = new Vector3(image.MapData[TRIndex], image.MapData[TRIndex + 1], image.MapData[TRIndex + 2]);
+            var BL = new Vector3(image.MapData[BLIndex], image.MapData[BLIndex + 1], image.MapData[BLIndex + 2]);
+            var BR = new Vector3(image.MapData[BRIndex], image.MapData[BRIndex + 1], image.MapData[BRIndex + 2]);
+
+
+            var CT = fx * TR + (1 - fx) * TL;
+            var CB = fx * BR + (1 - fx) * BL;
+
+            return fy * CB + (1 - fy) * CT;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Color CalculateColor(Vector3 point, Vector3 normal, Scene scene, Color baseColor)
         {
-            var light = scene.Light.CalculateLightWithSpecular(point, normal, scene.Camera.Eye);
+            var light = new Vector3(0, 0, 0);
+            for (int i = 0; i < scene.Light.Count; i++)
+                light += scene.Light[i].CalculateLightWithSpecular(point, normal, scene.Camera.Eye);
             var color = Color.FromArgb(
                 (byte)(light.X * baseColor.R > 255 ? 255 : light.X* baseColor.R),
                 (byte)(light.Y * baseColor.G > 255 ? 255 : light.Y * baseColor.G),
@@ -543,9 +567,9 @@ namespace ObjVisualizer.GraphicsComponents
                                 continue;
                             var z = zscan[x - xl];
 
-                            //try
-                            //{
-                            //    SpincLocker[y][x].Enter(ref SpincLockerBoolean[y, x]);
+
+                            lock (SpincLocker[y][x])
+                            {
                                 if (z < ZBuffer[y][x])
                                 {
                                     ZBuffer[y][x] = z;
@@ -557,15 +581,9 @@ namespace ObjVisualizer.GraphicsComponents
                                     *pixelPtr++ = color.G;
                                     *pixelPtr = color.R;
                                 }
-                            //}
-                            //finally
-                            //{
-                            //    if (SpincLockerBoolean[y, x])
-                            //    {
-                            //        SpincLocker[y][x].Exit();
-                            //    }
+                            }
 
-                            //}
+
                         }
 
                     }

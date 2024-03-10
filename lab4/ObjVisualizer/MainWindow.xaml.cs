@@ -230,8 +230,10 @@ namespace ObjVisualizer
                        MainScene.Camera.Radius * (float)Math.Cos(MainScene.Camera.CameraZeta),
                        MainScene.Camera.Radius * (float)Math.Sin(MainScene.Camera.CameraPhi) *
                        (float)Math.Sin(MainScene.Camera.CameraZeta));
-                MainScene.Light = new PointLight(MainScene.Camera.Eye.X, MainScene.Camera.Eye.Y, MainScene.Camera.Eye.Z, 0.8f, MainScene.Ambient, MainScene.Specular);
-                //MainScene.Light = new PointLight(0, 0,5, 0.8f, MainScene.Ambient, MainScene.Specular);
+
+                MainScene.Light[0] = new PointLight(0, 10, 20, 0.8f, MainScene.Ambient, MainScene.Specular, new Vector3(0f, 0f, 1f), new Vector3(1f, 1f, 1f));
+                MainScene.Light[1] = new PointLight(20, 10, 20, 0.5f, MainScene.Ambient, MainScene.Specular, new Vector3(0f, 1f, 0f), new Vector3(1f, 1f, 1f));
+
 
                 MainScene.UpdateViewMatix();
 
