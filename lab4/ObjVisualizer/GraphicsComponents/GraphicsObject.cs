@@ -11,8 +11,8 @@ namespace ObjVisualizer.GraphicsComponents
     {
 
         private readonly ImageData _kdMap = Kd;
-        private readonly ImageData _mraoMap = Kd;
-        private readonly ImageData _normMap = Kd;
+        private readonly ImageData _mraoMap = Mrao;
+        private readonly ImageData _normMap = Norm;
       
         public ImageData KdMap { get =>  _kdMap; }
         public ImageData MraoMap { get =>  _mraoMap; }
