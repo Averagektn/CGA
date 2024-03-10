@@ -36,6 +36,9 @@ namespace ObjVisualizer.GraphicsComponents
                     new(),
                     new(),
                     new(),
+                    new(),
+                    new(),
+                    new(),
                     new()), color);
             }
         }
@@ -53,10 +56,55 @@ namespace ObjVisualizer.GraphicsComponents
                     new(normales[i + 1].X, normales[i + 1].Y, normales[i + 1].Z),
                     new(originalVertexes[0].X, originalVertexes[0].Y, originalVertexes[0].Z),
                     new(originalVertexes[i].X, originalVertexes[i].Y, originalVertexes[i].Z),
-                    new(originalVertexes[i+1].X, originalVertexes[i+1].Y, originalVertexes[i+1].Z)), scene);
+                    new(originalVertexes[i+1].X, originalVertexes[i+1].Y, originalVertexes[i+1].Z), 
+                    new(),
+                    new(),
+                    new()), scene);
             }
         }
 
+        public unsafe void Rasterize(IList<Vector4> vertices,IList<Vector4> originalVertexes,IList<Vector3> textels ,  Scene scene)
+        {
+            for (int i = 1; i < vertices.Count - 1; i++)
+            {
+                MyRasterizeTriangleTexture(new(
+                    new(vertices[0].X, vertices[0].Y, vertices[0].Z),
+                    new(vertices[i].X, vertices[i].Y, vertices[i].Z),
+                    new(vertices[i + 1].X, vertices[i + 1].Y, vertices[i + 1].Z),
+                    new(),
+                    new(),
+                    new(),
+                    new(originalVertexes[0].X, originalVertexes[0].Y, originalVertexes[0].Z),
+                    new(originalVertexes[i].X, originalVertexes[i].Y, originalVertexes[i].Z),
+                    new(originalVertexes[i + 1].X, originalVertexes[i + 1].Y, originalVertexes[i + 1].Z),
+                    new(textels[0].X, textels[0].Y),
+                    new(textels[i].X, textels[i].Y),
+                    new(textels[i + 1].X, textels[i + 1].Y)), scene);
+            }
+        }
+
+        private static List<float> InterpolateTexture(int i0, float d0, int i1, float d1, List<float> z)
+        {
+            if (i0 == i1)
+            {
+                return [d0];
+            }
+
+            var values = new List<float>();
+
+            float a = (d1 - d0) / ((i1 - i0) /** z[0]*/);
+            float d = d0/*/z[0]*/;
+
+            for (int i = i0; i < i1; i++)
+            {
+                values.Add(d /** z[i-i0]*/);
+                d += a;
+            }
+            values.Add(d/**z[i1-1-i0]*/);
+            d += a;
+
+            return values;
+        }
         private static List<float> Interpolate(int i0, float d0, int i1, float d1)
         {
             if (i0 == i1)
@@ -166,9 +214,184 @@ namespace ObjVisualizer.GraphicsComponents
             }
         }
 
+        private unsafe void MyRasterizeTriangleTexture(Triangle triangle, Scene scene)
+        {
+            if ((triangle.A.X > 0 && triangle.A.Y > 0 && triangle.A.X < _width && triangle.A.Y < _height) ||
+            (triangle.B.X > 0 && triangle.B.Y > 0 && triangle.B.X < _width && triangle.B.Y < _height) ||
+            (triangle.C.X > 0 && triangle.C.Y > 0 && triangle.C.X < _width && triangle.C.Y < _height))
+            {
+                Color baseColor = Color.White;
+                byte* data = (byte*)Buffer.ToPointer();
+                if (triangle.B.Y < triangle.A.Y)
+                {
+                    (triangle.B, triangle.A) = (triangle.A, triangle.B);
+                    (triangle.RealB, triangle.RealA) = (triangle.RealA, triangle.RealB);
+                    (triangle.TextelB, triangle.TextelA) = (triangle.TextelA, triangle.TextelB);
+
+                }
+                if (triangle.C.Y < triangle.A.Y)
+                {
+                    (triangle.C, triangle.A) = (triangle.A, triangle.C);
+                    (triangle.RealC, triangle.RealA) = (triangle.RealA, triangle.RealC);
+                    (triangle.TextelC, triangle.TextelA) = (triangle.TextelA, triangle.TextelC);
+
+                }
+                if (triangle.C.Y < triangle.B.Y)
+                {
+                    (triangle.B, triangle.C) = (triangle.C, triangle.B);
+                    (triangle.RealB, triangle.RealC) = (triangle.RealC, triangle.RealB);
+                    (triangle.TextelB, triangle.TextelC) = (triangle.TextelC, triangle.TextelB);
+
+                }
+                int YA = (int)float.Round(triangle.A.Y, 0);
+                int YB = (int)float.Round(triangle.B.Y, 0);
+                int YC = (int)float.Round(triangle.C.Y, 0);
+
+
+                var z01 = Interpolate(YA, triangle.A.Z, YB, triangle.B.Z);
+                var z12 = Interpolate(YB, triangle.B.Z, YC, triangle.C.Z);
+                var z02 = Interpolate(YA, triangle.A.Z, YC, triangle.C.Z);
+                z01.RemoveAt(z01.Count - 1);
+                var z012 = z01.Concat(z12).ToList();
+                (var x02, var x012) = TraingleInterpolation(YA, triangle.A.X, YB, triangle.B.X, YC, triangle.C.X);
+
+                (var rx02, var rx012) = TraingleInterpolation(YA, triangle.RealA.X, YB, triangle.RealB.X, YC, triangle.RealC.X);
+                (var ry02, var ry012) = TraingleInterpolation(YA, triangle.RealA.Y, YB, triangle.RealB.Y, YC, triangle.RealC.Y);
+                (var rz02, var rz012) = TraingleInterpolation(YA, triangle.RealA.Z, YB, triangle.RealB.Z, YC, triangle.RealC.Z);
+
+                (var u02, var u012) = TraingleInterpolationTexture(YA, triangle.TextelA.X, YB, triangle.TextelB.X, YC, triangle.TextelC.X, z01,z12,z02);
+                (var v02, var v012) = TraingleInterpolationTexture(YA, triangle.TextelA.Y, YB, triangle.TextelB.Y, YC, triangle.TextelC.Y, z01, z12, z02);
+
+                var m = (int)float.Floor(x012.Count / 2.0f);
+                List<float> x_left;
+                List<float> x_right;
+                List<float> z_left;
+                List<float> z_right;
+                List<float> u_left;
+                List<float> u_right;
+                List<float> v_left;
+                List<float> v_right;
+
+
+                List<float> rx_right, ry_right, rz_right;
+                List<float> rx_left, ry_left, rz_left;
+
+                if ((int)float.Round(x02[m]) <= (int)float.Round(x012[m]))
+                {
+                    (x_left, x_right) = (x02, x012);
+                    (z_left, z_right) = (z02, z012);
+
+                    (u_left, u_right) = (u02, u012);
+                    (v_left, v_right) = (v02, v012);
+
+                    
+                   
+                    (rx_left, rx_right) = (rx02, rx012);
+                    (ry_left, ry_right) = (ry02, ry012);
+                    (rz_left, rz_right) = (rz02, rz012);
+
+                }
+                else
+                {
+                    (x_left, x_right) = (x012, x02);
+                    (z_left, z_right) = (z012, z02);
+
+                    (u_left, u_right) = (u012, u02);
+                    (v_left, v_right) = (v012, v02);
+
+                   
+
+                    (rx_left, rx_right) = (rx012, rx02);
+                    (ry_left, ry_right) = (ry012, ry02);
+                    (rz_left, rz_right) = (rz012, rz02);
+
+                }
+                int YDiffTop = 0;
+                int YDiffTopI = 0;
+                int TopY = (int)float.Round(triangle.A.Y);
+                if (triangle.A.Y < 0)
+                {
+                    YDiffTop = -(int)float.Round(triangle.A.Y);
+                    YDiffTopI = (int)float.Round(triangle.C.Y);
+                    TopY = 0;
+                }
+                for (int y = TopY; y <= (int)float.Round(triangle.C.Y); y++)
+                {
+                    if (y < 0 || y >= _height)
+                        continue;
+                    var index = (y - TopY + YDiffTop);
+                    {
+                        var xl = (int)float.Round(x_left[index]);
+                        var xr = (int)float.Round(x_right[index]);
+                        var zl = z_left[index];
+                        var zr = z_right[index];
+                        
+
+                        (var rxl, var rxr) = (rx_left[index], rx_right[index]);
+                        (var ryl, var ryr) = (ry_left[index], ry_right[index]);
+                        (var rzl, var rzr) = (rz_left[index], rz_right[index]);
+
+                        (var ul, var ur) = (u_left[index], u_right[index]);
+                        (var vl, var vr) = (v_left[index], v_right[index]);
+                        
+                        var zscan = Interpolate(xl, zl, xr, zr);
+                        if (zscan.Count == 0)
+                            continue;
+                        var uscan = InterpolateTexture(xl, ul, xr, ur, zscan);
+                        var vscan = InterpolateTexture(xl, vl, xr, vr, zscan);
+
+                        var rxscan = Interpolate(xl, rxl, xr, rxr);
+                        var ryscan = Interpolate(xl, ryl, xr, ryr);
+                        var rzscan = Interpolate(xl, rzl, xr, rzr);
+
+
+                        for (int x = xl; x <= xr; x++)
+                        {
+                            if (x < 0 || x >= _width)
+                                continue;
+                            var z = zscan[x - xl];
+
+                            //try
+                            //{
+                            //    SpincLocker[y][x].Enter(ref SpincLockerBoolean[y, x]);
+                            if (z < ZBuffer[y][x])
+                            {
+                                ZBuffer[y][x] = z;
+                                byte* pixelPtr = data + y * _stride + x * 3;
+                                var vertex = new Vector3(rxscan[x - xl], ryscan[x - xl], rzscan[x - xl]);
+                                //Color color = Color.Blue ;
+                                //Color color = CalculateColor(vertex, Vector3.Normalize(normal), scene, baseColor);
+                                int textureByteKd = (int)((1-vscan[x - xl]) * scene.GraphicsObjects.KdMap.Height) * scene.GraphicsObjects.KdMap.Stride + (int)(uscan[x - xl] * scene.GraphicsObjects.KdMap.Width) * scene.GraphicsObjects.KdMap.ColorSIze/ 8;
+                                int textureByteNorm = (int)((1 - vscan[x - xl]) * scene.GraphicsObjects.NormMap.Height) * scene.GraphicsObjects.NormMap.Stride + (int)(uscan[x - xl] * scene.GraphicsObjects.NormMap.Width) * scene.GraphicsObjects.NormMap.ColorSIze / 8;
+                                int textureByteMrao = (int)((1 - vscan[x - xl]) * scene.GraphicsObjects.MraoMap.Height) * scene.GraphicsObjects.MraoMap.Stride + (int)(uscan[x - xl] * scene.GraphicsObjects.MraoMap.Width) * scene.GraphicsObjects.MraoMap.ColorSIze / 8;
+                                Vector3 normal = new Vector3((scene.GraphicsObjects.NormMap.MapData[textureByteNorm + 0] / 255.0f) * 2 - 1, (scene.GraphicsObjects.NormMap.MapData[textureByteNorm + 1] / 255.0f) * 2 - 1, (scene.GraphicsObjects.NormMap.MapData[textureByteNorm + 2] / 255.0f) * 2 - 1);
+                                Vector3 lightResult = scene.Light.CalculateLightWithMaps(vertex, normal, scene.Camera.Eye, scene.GraphicsObjects.MraoMap.MapData[textureByteMrao + 0]);
+                                //Vector3 lightResult = new(1f, 1f, 1f);
+                                *pixelPtr++ = (byte)(scene.GraphicsObjects.KdMap.MapData[textureByteKd +0] * (lightResult.X > 1 ? 1 : lightResult.X));
+                                *pixelPtr++ = (byte)(scene.GraphicsObjects.KdMap.MapData[textureByteKd +1] * (lightResult.Y > 1 ? 1 : lightResult.Y));
+                                *pixelPtr = (byte)(scene.GraphicsObjects.KdMap.MapData[textureByteKd + 2] * (lightResult.Z > 1 ? 1 : lightResult.Z));
+                            }
+                            //}
+                            //finally
+                            //{
+                            //    if (SpincLockerBoolean[y, x])
+                            //    {
+                            //        SpincLocker[y][x].Exit();
+                            //    }
+
+                            //}
+                        }
+
+                    }
+
+
+                }
+            }
+        }
+
         private Color CalculateColor(Vector3 point, Vector3 normal, Scene scene, Color baseColor)
         {
-            var light = scene.Light.CalculateLightLaba3(point, normal, scene.Camera.Eye);
+            var light = scene.Light.CalculateLightWithSpecular(point, normal, scene.Camera.Eye);
             var color = Color.FromArgb(
                 (byte)(light.X * baseColor.R > 255 ? 255 : light.X* baseColor.R),
                 (byte)(light.Y * baseColor.G > 255 ? 255 : light.Y * baseColor.G),
@@ -181,6 +404,16 @@ namespace ObjVisualizer.GraphicsComponents
             var v01 = Interpolate(y0, v0, y1, v1);
             var v12 = Interpolate(y1, v1, y2, v2);
             var v02 = Interpolate(y0, v0, y2, v2);
+            v01.RemoveAt(v01.Count - 1);
+            var v012 = v01.Concat(v12).ToList();
+            return (v02, v012);
+        }
+
+        private (List<float>, List<float>) TraingleInterpolationTexture(int y0, float v0, int y1, float v1, int y2, float v2,List<float> z01, List<float> z12, List<float> z02)
+        {
+            var v01 = InterpolateTexture(y0, v0, y1, v1, z01);
+            var v12 = InterpolateTexture(y1, v1, y2, v2 ,z12);
+            var v02 = InterpolateTexture(y0, v0, y2, v2, z02);
             v01.RemoveAt(v01.Count - 1);
             var v012 = v01.Concat(v12).ToList();
             return (v02, v012);
@@ -227,7 +460,7 @@ namespace ObjVisualizer.GraphicsComponents
                 (var ry02, var ry012) = TraingleInterpolation(YA, triangle.RealA.Y, YB, triangle.RealB.Y, YC, triangle.RealC.Y);
                 (var rz02, var rz012) = TraingleInterpolation(YA, triangle.RealA.Z, YB, triangle.RealB.Z, YC, triangle.RealC.Z);
 
-                var m = (int)Math.Floor(x012.Count / 2.0f);
+                var m = (int)float.Floor(x012.Count / 2.0f);
                 List<float> x_left;
                 List<float> x_right;
                 List<float> z_left;
@@ -293,6 +526,8 @@ namespace ObjVisualizer.GraphicsComponents
                         (var ryl, var ryr) = (ry_left[index], ry_right[index]);
                         (var rzl, var rzr) = (rz_left[index], rz_right[index]);
                         var zscan = Interpolate(xl, zl, xr, zr);
+                        if (zscan.Count == 0)
+                            continue;
 
                         var nxscan = Interpolate(xl, nxl, xr, nxr);
                         var nyscan = Interpolate(xl, nyl, xr, nyr);

@@ -23,9 +23,9 @@ namespace ObjVisualizer.GraphicsComponents
 
         private readonly Vector3 LightColorDiffuse= new Vector3(1,1f,1);
 
-        private readonly Vector3 LightColorSpecular= new Vector3(1,0.84f,0);
+        private readonly Vector3 LightColorSpecular= new Vector3(1,0f,0);
 
-        public float CalculateLightLaba2(Vector3 point, Vector3 normal)
+        public float CalculateLightDiffuse(Vector3 point, Vector3 normal)
         {
             Vector3 l = new Vector3(X, Y, Z) - point;
             float lightResult = 0f;
@@ -39,10 +39,10 @@ namespace ObjVisualizer.GraphicsComponents
            
             return lightResult;
         }
-        public Vector3 CalculateLightLaba3(Vector3 point, Vector3 normal, Vector3 eye)
+        public Vector3 CalculateLightWithSpecular(Vector3 point, Vector3 normal, Vector3 eye)
         {
             Vector3 l = new Vector3(X, Y, Z) - point;
-            int s = 100;
+            int s = 10;
             Vector3 lightResult = new(0, 0, 0);
             if (ambient)
                 lightResult = LightColorAmbient * _ambientIntencity;
@@ -62,7 +62,36 @@ namespace ObjVisualizer.GraphicsComponents
                     lightResult += _specularIntencity * LightColorSpecular * Intency * float.Pow(r_dot_v / (R.Length() * V.Length()), s);
                 }
             }
-           
+
+
+
+            return lightResult;
+        }
+
+        public Vector3 CalculateLightWithMaps(Vector3 point, Vector3 normal, Vector3 eye, float specIntenc)
+        {
+            Vector3 l = new Vector3(X, Y, Z) - point;
+            int s = 1;
+            Vector3 lightResult = new(0, 0, 0);
+            if (ambient)
+                lightResult = LightColorAmbient * _ambientIntencity;
+            float angle = Vector3.Dot(normal, l);
+
+            if (angle > 0)
+            {
+                lightResult += _diffuceIntencity * LightColorDiffuse * Intency * angle / (l.Length() * normal.Length());
+            }
+            if (specular)
+            {
+                Vector3 R = 2 * normal * angle - l;
+                Vector3 V = eye - point;
+                float r_dot_v = Vector3.Dot(R, V);
+                if (r_dot_v > 0)
+                {
+                    lightResult += specIntenc/255 * LightColorSpecular * Intency * float.Pow(r_dot_v / (R.Length() * V.Length()), s);
+                }
+            }
+
 
 
             return lightResult;

@@ -25,6 +25,8 @@ namespace ObjVisualizer.GraphicsComponents
 
         public LabaStage Stage;
 
+        public GraphicsObject GraphicsObjects;
+        
         public enum LabaStage
         {
             Laba1,
@@ -61,13 +63,15 @@ namespace ObjVisualizer.GraphicsComponents
 
         public void UpdateViewMatix()
         {
-            ViewMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewMatrix(Camera));
+            ViewMatrix = Matrix4x4.CreateLookAt(Camera.Eye, Camera.Target, Camera.Up);
+            //ViewMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewMatrix(Camera));
         }
 
         public void SceneResize(int NewWindowWidth, int NewWindowHeight)
         {
             Camera.ChangeCameraAspect(NewWindowWidth, NewWindowHeight);
             ViewPortMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewPortMatrix(NewWindowWidth, NewWindowHeight));
+
         }
 
         public Vector4 GetTransformedVertex(Vector4 Vertex, out bool isOut)
