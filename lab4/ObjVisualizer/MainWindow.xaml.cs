@@ -106,7 +106,9 @@ namespace ObjVisualizer
                         MainScene.Camera.Radius * (float)Math.Cos(MainScene.Camera.CameraPhi) * (float)Math.Sin(MainScene.Camera.CameraZeta),
                         MainScene.Camera.Radius * (float)Math.Cos(MainScene.Camera.CameraZeta),
                         MainScene.Camera.Radius * (float)Math.Sin(MainScene.Camera.CameraPhi) * (float)Math.Sin(MainScene.Camera.CameraZeta));
-            MainScene.Light = new PointLight(MainScene.Camera.Eye.X, MainScene.Camera.Eye.Y, MainScene.Camera.Eye.Z, 0.6f, false,false);
+            MainScene.Light.Add(new PointLight(0, 10, 10, 0.8f, false,false, new Vector3(0f,1f,0f),new Vector3(1f, 1f, 1f)));
+            MainScene.Light.Add(new PointLight(0, 10, 10, 0.8f, false,false, new Vector3(0f,0f,1f),new Vector3(1f, 1f, 1f)));
+            //MainScene.Light.Add(new PointLight(0, 4, -10, 0.8f, false,false, new Vector3(1f,1f,1f),new Vector3(1f, 1f, 1f)));
             MainScene.ViewMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewMatrix(MainScene.Camera));
             MainScene.ProjectionMatrix = Matrix4x4.Transpose(MatrixOperator.GetProjectionMatrix(MainScene.Camera));
             MainScene.ViewPortMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewPortMatrix(WindowWidth, WindowHeight));
@@ -312,7 +314,7 @@ namespace ObjVisualizer
                                     var triangle = Enumerable.Range(0, FaceVertexes.Count)
                                         .Select(i => MainScene.GetTransformedVertex(Vertexes[FaceVertexes[i] - 1]))
                                         .ToList();
-                                    float light = MainScene.Light.CalculateLightDiffuse(new Vector3(Vertexes[FaceVertexes[0] - 1].X,
+                                    float light = MainScene.Light[0].CalculateLightDiffuse(new Vector3(Vertexes[FaceVertexes[0] - 1].X,
                                         Vertexes[FaceVertexes[0] - 1].Y, Vertexes[FaceVertexes[0] - 1].Z), PoliNormal);
                                     drawer.Rasterize(triangle,
                                         Color.FromArgb(

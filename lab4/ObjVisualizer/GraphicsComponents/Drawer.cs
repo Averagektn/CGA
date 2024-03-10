@@ -2,6 +2,8 @@
 using System;
 using System.Drawing;
 using System.Numerics;
+using System.Runtime.CompilerServices;
+using System.Windows.Documents;
 using System.Windows.Media.Media3D;
 
 namespace ObjVisualizer.GraphicsComponents
@@ -43,7 +45,7 @@ namespace ObjVisualizer.GraphicsComponents
             }
         }
 
-        public unsafe void Rasterize(IList<Vector4> vertices, IList<Vector3> normales,IList<Vector4> originalVertexes, Scene scene)
+        public unsafe void Rasterize(IList<Vector4> vertices, IList<Vector3> normales, IList<Vector4> originalVertexes, Scene scene)
         {
             for (int i = 1; i < vertices.Count - 1; i++)
             {
@@ -56,14 +58,14 @@ namespace ObjVisualizer.GraphicsComponents
                     new(normales[i + 1].X, normales[i + 1].Y, normales[i + 1].Z),
                     new(originalVertexes[0].X, originalVertexes[0].Y, originalVertexes[0].Z),
                     new(originalVertexes[i].X, originalVertexes[i].Y, originalVertexes[i].Z),
-                    new(originalVertexes[i+1].X, originalVertexes[i+1].Y, originalVertexes[i+1].Z), 
+                    new(originalVertexes[i + 1].X, originalVertexes[i + 1].Y, originalVertexes[i + 1].Z),
                     new(),
                     new(),
                     new()), scene);
             }
         }
 
-        public unsafe void Rasterize(IList<Vector4> vertices,IList<Vector4> originalVertexes,IList<Vector3> textels ,  Scene scene)
+        public unsafe void Rasterize(IList<Vector4> vertices, IList<Vector4> originalVertexes, IList<Vector3> textels, Scene scene)
         {
             for (int i = 1; i < vertices.Count - 1; i++)
             {
@@ -83,6 +85,7 @@ namespace ObjVisualizer.GraphicsComponents
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static List<float> InterpolateTexture(int i0, float d0, int i1, float d1, List<float> z)
         {
             if (i0 == i1)
@@ -105,6 +108,8 @@ namespace ObjVisualizer.GraphicsComponents
 
             return values;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static List<float> Interpolate(int i0, float d0, int i1, float d1)
         {
             if (i0 == i1)
@@ -259,7 +264,7 @@ namespace ObjVisualizer.GraphicsComponents
                 (var ry02, var ry012) = TraingleInterpolation(YA, triangle.RealA.Y, YB, triangle.RealB.Y, YC, triangle.RealC.Y);
                 (var rz02, var rz012) = TraingleInterpolation(YA, triangle.RealA.Z, YB, triangle.RealB.Z, YC, triangle.RealC.Z);
 
-                (var u02, var u012) = TraingleInterpolationTexture(YA, triangle.TextelA.X, YB, triangle.TextelB.X, YC, triangle.TextelC.X, z01,z12,z02);
+                (var u02, var u012) = TraingleInterpolationTexture(YA, triangle.TextelA.X, YB, triangle.TextelB.X, YC, triangle.TextelC.X, z01, z12, z02);
                 (var v02, var v012) = TraingleInterpolationTexture(YA, triangle.TextelA.Y, YB, triangle.TextelB.Y, YC, triangle.TextelC.Y, z01, z12, z02);
 
                 var m = (int)float.Floor(x012.Count / 2.0f);
@@ -284,8 +289,8 @@ namespace ObjVisualizer.GraphicsComponents
                     (u_left, u_right) = (u02, u012);
                     (v_left, v_right) = (v02, v012);
 
-                    
-                   
+
+
                     (rx_left, rx_right) = (rx02, rx012);
                     (ry_left, ry_right) = (ry02, ry012);
                     (rz_left, rz_right) = (rz02, rz012);
@@ -299,7 +304,7 @@ namespace ObjVisualizer.GraphicsComponents
                     (u_left, u_right) = (u012, u02);
                     (v_left, v_right) = (v012, v02);
 
-                   
+
 
                     (rx_left, rx_right) = (rx012, rx02);
                     (ry_left, ry_right) = (ry012, ry02);
@@ -325,7 +330,7 @@ namespace ObjVisualizer.GraphicsComponents
                         var xr = (int)float.Round(x_right[index]);
                         var zl = z_left[index];
                         var zr = z_right[index];
-                        
+
 
                         (var rxl, var rxr) = (rx_left[index], rx_right[index]);
                         (var ryl, var ryr) = (ry_left[index], ry_right[index]);
@@ -333,7 +338,7 @@ namespace ObjVisualizer.GraphicsComponents
 
                         (var ul, var ur) = (u_left[index], u_right[index]);
                         (var vl, var vr) = (v_left[index], v_right[index]);
-                        
+
                         var zscan = Interpolate(xl, zl, xr, zr);
                         if (zscan.Count == 0)
                             continue;
@@ -411,19 +416,44 @@ namespace ObjVisualizer.GraphicsComponents
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private Vector3 GetNewTextel(float tx, float ty, ImageData image)
+        {
+            var fx = tx - float.Floor(tx);
+            var fy = ty - float.Floor(ty);
+            tx = float.Floor(tx);
+            ty = float.Floor(ty);
+
+            var TLIndex = (int)(ty * image.Stride + tx * image.ColorSize / 8);
+            var TRIndex = (int)(ty * image.Stride + (tx + 1) * image.ColorSize / 8);
+            var BLIndex = (int)((ty + 1) * image.Stride + tx * image.ColorSize / 8);
+            var BRIndex = (int)((ty + 1) * image.Stride + (tx + 1) * image.ColorSize / 8);
+            var TL = new Vector3(image.MapData[TLIndex], image.MapData[TLIndex+1], image.MapData[TLIndex+2]);
+            var TR = new Vector3(image.MapData[TRIndex], image.MapData[TRIndex+1], image.MapData[TRIndex+2]);
+            var BL = new Vector3(image.MapData[BLIndex], image.MapData[BLIndex+1], image.MapData[BLIndex+2]);
+            var BR = new Vector3(image.MapData[BRIndex], image.MapData[BRIndex+1], image.MapData[BRIndex+2]);
+
+
+            var CT = fx * TR + (1 - fx) * TL;
+            var CB = fx * BR + (1 - fx) * BL;
+
+            return fy * CB + (1 - fy) * CT;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Color CalculateColor(Vector3 point, Vector3 normal, Scene scene, Color baseColor)
         {
-            var light = new Vector3(0, 0, 0);
-            for (int i = 0; i < scene.Light.Count; i++)
-                light += scene.Light[i].CalculateLightWithSpecular(point, normal, scene.Camera.Eye);
+            var light = new Vector3(0,0,0);
+            for (int i =0; i < scene.Light.Count; i++)
+             light += scene.Light[i].CalculateLightWithSpecular(point, normal, scene.Camera.Eye);
             var color = Color.FromArgb(
-                (byte)(light.X * baseColor.R > 255 ? 255 : light.X* baseColor.R),
+                (byte)(light.X * baseColor.R > 255 ? 255 : light.X * baseColor.R),
                 (byte)(light.Y * baseColor.G > 255 ? 255 : light.Y * baseColor.G),
                 (byte)(light.Z * baseColor.B > 255 ? 255 : light.Z * baseColor.B));
             return color;
         }
 
-        private (List<float>, List<float>) TraingleInterpolation(int y0, float v0,int y1, float v1, int y2, float v2)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private (List<float>, List<float>) TraingleInterpolation(int y0, float v0, int y1, float v1, int y2, float v2)
         {
             var v01 = Interpolate(y0, v0, y1, v1);
             var v12 = Interpolate(y1, v1, y2, v2);
@@ -433,10 +463,11 @@ namespace ObjVisualizer.GraphicsComponents
             return (v02, v012);
         }
 
-        private (List<float>, List<float>) TraingleInterpolationTexture(int y0, float v0, int y1, float v1, int y2, float v2,List<float> z01, List<float> z12, List<float> z02)
+
+        private (List<float>, List<float>) TraingleInterpolationTexture(int y0, float v0, int y1, float v1, int y2, float v2, List<float> z01, List<float> z12, List<float> z02)
         {
             var v01 = InterpolateTexture(y0, v0, y1, v1, z01);
-            var v12 = InterpolateTexture(y1, v1, y2, v2 ,z12);
+            var v12 = InterpolateTexture(y1, v1, y2, v2, z12);
             var v02 = InterpolateTexture(y0, v0, y2, v2, z02);
             v01.RemoveAt(v01.Count - 1);
             var v012 = v01.Concat(v12).ToList();
@@ -471,7 +502,7 @@ namespace ObjVisualizer.GraphicsComponents
                 int YA = (int)float.Round(triangle.A.Y, 0);
                 int YB = (int)float.Round(triangle.B.Y, 0);
                 int YC = (int)float.Round(triangle.C.Y, 0);
-               
+
                 (var x02, var x012) = TraingleInterpolation(YA, triangle.A.X, YB, triangle.B.X, YC, triangle.C.X);
                 (var z02, var z012) = TraingleInterpolation(YA, triangle.A.Z, YB, triangle.B.Z, YC, triangle.C.Z);
 
@@ -479,7 +510,7 @@ namespace ObjVisualizer.GraphicsComponents
                 (var nx02, var nx012) = TraingleInterpolation(YA, triangle.NormalA.X, YB, triangle.NormalB.X, YC, triangle.NormalC.X);
                 (var ny02, var ny012) = TraingleInterpolation(YA, triangle.NormalA.Y, YB, triangle.NormalB.Y, YC, triangle.NormalC.Y);
                 (var nz02, var nz012) = TraingleInterpolation(YA, triangle.NormalA.Z, YB, triangle.NormalB.Z, YC, triangle.NormalC.Z);
-                
+
                 (var rx02, var rx012) = TraingleInterpolation(YA, triangle.RealA.X, YB, triangle.RealB.X, YC, triangle.RealC.X);
                 (var ry02, var ry012) = TraingleInterpolation(YA, triangle.RealA.Y, YB, triangle.RealB.Y, YC, triangle.RealC.Y);
                 (var rz02, var rz012) = TraingleInterpolation(YA, triangle.RealA.Z, YB, triangle.RealB.Z, YC, triangle.RealC.Z);
@@ -593,7 +624,7 @@ namespace ObjVisualizer.GraphicsComponents
             }
         }
 
-       
-      
+
+
     }
 }

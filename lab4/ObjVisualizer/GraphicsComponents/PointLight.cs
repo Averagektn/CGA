@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace ObjVisualizer.GraphicsComponents
 {
-    internal readonly struct PointLight(float x, float y, float z, float intency, bool ambient, bool specular)
+    internal readonly struct PointLight(float x, float y, float z, float intency, bool ambient, bool specular, Vector3 ColorSpecular, Vector3 ColorDiffuce)
     {
         public readonly float X = x;
         public readonly float Y = y;
@@ -14,7 +14,7 @@ namespace ObjVisualizer.GraphicsComponents
 
         public readonly float _specularIntencity = 1f;
 
-        public readonly float _diffuceIntencity = 1f;
+        public readonly float _diffuceIntencity = .5f;
 
 
         private readonly bool ambient = ambient;
@@ -22,9 +22,9 @@ namespace ObjVisualizer.GraphicsComponents
 
         private readonly Vector3 LightColorAmbient = new Vector3(1,1f,1);
 
-        private readonly Vector3 LightColorDiffuse= new Vector3(1,1f,1);
+        private readonly Vector3 LightColorDiffuse= ColorDiffuce;
 
-        private readonly Vector3 LightColorSpecular= new Vector3(1,0f,0);
+        private readonly Vector3 LightColorSpecular= ColorSpecular;
 
         public float CalculateLightDiffuse(Vector3 point, Vector3 normal)
         {
