@@ -2,6 +2,8 @@
 using System;
 using System.Drawing;
 using System.Numerics;
+using System.Runtime.CompilerServices;
+using System.Windows.Documents;
 using System.Windows.Media.Media3D;
 
 namespace ObjVisualizer.GraphicsComponents
@@ -83,6 +85,7 @@ namespace ObjVisualizer.GraphicsComponents
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static List<float> InterpolateTexture(int i0, float d0, int i1, float d1, List<float> z)
         {
             if (i0 == i1)
@@ -105,6 +108,8 @@ namespace ObjVisualizer.GraphicsComponents
 
             return values;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static List<float> Interpolate(int i0, float d0, int i1, float d1)
         {
             if (i0 == i1)
@@ -364,14 +369,17 @@ namespace ObjVisualizer.GraphicsComponents
                                 var ty = (1-vscan[x - xl]) * scene.GraphicsObjects.KdMap.Height;
                                 //int textureByteKd = (int)((1 - vscan[x - xl]) * scene.GraphicsObjects.KdMap.Height) * scene.GraphicsObjects.KdMap.Stride + (int)(uscan[x - xl] * scene.GraphicsObjects.KdMap.Width) * scene.GraphicsObjects.KdMap.ColorSize / 8;
                                 Vector3 newColor = GetNewTextel(tx, ty, scene.GraphicsObjects.KdMap);
+                                //Vector3 newColor = new(scene.GraphicsObjects.KdMap.MapData[textureByteKd], scene.GraphicsObjects.KdMap.MapData[textureByteKd + 1], scene.GraphicsObjects.KdMap.MapData[textureByteKd + 2]);
                                 int textureByteNorm = (int)((1 - vscan[x - xl]) * scene.GraphicsObjects.NormMap.Height) * scene.GraphicsObjects.NormMap.Stride + (int)(uscan[x - xl] * scene.GraphicsObjects.NormMap.Width) * scene.GraphicsObjects.NormMap.ColorSize / 8;
                                 int textureByteMrao = (int)((1 - vscan[x - xl]) * scene.GraphicsObjects.MraoMap.Height) * scene.GraphicsObjects.MraoMap.Stride + (int)(uscan[x - xl] * scene.GraphicsObjects.MraoMap.Width) * scene.GraphicsObjects.MraoMap.ColorSize / 8;
                                 Vector3 normal = new Vector3((scene.GraphicsObjects.NormMap.MapData[textureByteNorm + 2] / 255.0f) * 2 - 1, (scene.GraphicsObjects.NormMap.MapData[textureByteNorm + 1] / 255.0f) * 2 - 1, (scene.GraphicsObjects.NormMap.MapData[textureByteNorm + 0] / 255.0f) * 2 - 1);
-                                //Vector3 lightResult = scene.Light.CalculateLightWithMaps(vertex, normal, scene.Camera.Eye, scene.GraphicsObjects.MraoMap.MapData[textureByteMrao + 0]);
-                                Vector3 lightResult = new(1f, 1f, 1f);
-                                *pixelPtr++ = (byte)(scene.GraphicsObjects.KdMap.MapData[textureByteKd + 0] * (lightResult.X > 1 ? 1 : lightResult.X));
-                                *pixelPtr++ = (byte)(scene.GraphicsObjects.KdMap.MapData[textureByteKd + 1] * (lightResult.Y > 1 ? 1 : lightResult.Y));
-                                *pixelPtr = (byte)(scene.GraphicsObjects.KdMap.MapData[textureByteKd + 2] * (lightResult.Z > 1 ? 1 : lightResult.Z));
+                                Vector3 lightResult = new(0,0,0);
+                                for (int i = 0; i < scene.Light.Count; i++)
+                                 lightResult += scene.Light[i].CalculateLightWithMaps(vertex, normal, scene.Camera.Eye, scene.GraphicsObjects.MraoMap.MapData[textureByteMrao + 0]);
+                                //Vector3 lightResult = new(1f, 1f, 1f);
+                                *pixelPtr++ = (byte)(newColor.X * (lightResult.X > 1 ? 1 : lightResult.X));
+                                *pixelPtr++ = (byte)(newColor.Y * (lightResult.Y > 1 ? 1 : lightResult.Y));
+                                *pixelPtr = (byte)(newColor.Z * (lightResult.Z > 1 ? 1 : lightResult.Z));
                             }
                             //}
                             //finally
@@ -391,6 +399,7 @@ namespace ObjVisualizer.GraphicsComponents
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Vector3 GetNewTextel(float tx, float ty, ImageData image)
         {
             var fx = tx - float.Floor(tx);
@@ -402,10 +411,10 @@ namespace ObjVisualizer.GraphicsComponents
             var TRIndex = (int)(ty * image.Stride + (tx + 1) * image.ColorSize / 8);
             var BLIndex = (int)((ty + 1) * image.Stride + tx * image.ColorSize / 8);
             var BRIndex = (int)((ty + 1) * image.Stride + (tx + 1) * image.ColorSize / 8);
-            var TL = new Vector3(image.MapData[TLIndex], image.MapData[TLIndex], image.MapData[TLIndex]);
-            var TR = new Vector3(image.MapData[TRIndex], image.MapData[TRIndex], image.MapData[TRIndex]);
-            var BL = new Vector3(image.MapData[BLIndex], image.MapData[BLIndex], image.MapData[BLIndex]);
-            var BR = new Vector3(image.MapData[BRIndex], image.MapData[BRIndex], image.MapData[BRIndex]);
+            var TL = new Vector3(image.MapData[TLIndex], image.MapData[TLIndex+1], image.MapData[TLIndex+2]);
+            var TR = new Vector3(image.MapData[TRIndex], image.MapData[TRIndex+1], image.MapData[TRIndex+2]);
+            var BL = new Vector3(image.MapData[BLIndex], image.MapData[BLIndex+1], image.MapData[BLIndex+2]);
+            var BR = new Vector3(image.MapData[BRIndex], image.MapData[BRIndex+1], image.MapData[BRIndex+2]);
 
 
             var CT = fx * TR + (1 - fx) * TL;
@@ -414,9 +423,12 @@ namespace ObjVisualizer.GraphicsComponents
             return fy * CB + (1 - fy) * CT;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Color CalculateColor(Vector3 point, Vector3 normal, Scene scene, Color baseColor)
         {
-            var light = scene.Light.CalculateLightWithSpecular(point, normal, scene.Camera.Eye);
+            var light = new Vector3(0,0,0);
+            for (int i =0; i < scene.Light.Count; i++)
+             light += scene.Light[i].CalculateLightWithSpecular(point, normal, scene.Camera.Eye);
             var color = Color.FromArgb(
                 (byte)(light.X * baseColor.R > 255 ? 255 : light.X * baseColor.R),
                 (byte)(light.Y * baseColor.G > 255 ? 255 : light.Y * baseColor.G),
@@ -424,6 +436,7 @@ namespace ObjVisualizer.GraphicsComponents
             return color;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private (List<float>, List<float>) TraingleInterpolation(int y0, float v0, int y1, float v1, int y2, float v2)
         {
             var v01 = Interpolate(y0, v0, y1, v1);
@@ -433,6 +446,7 @@ namespace ObjVisualizer.GraphicsComponents
             var v012 = v01.Concat(v12).ToList();
             return (v02, v012);
         }
+
 
         private (List<float>, List<float>) TraingleInterpolationTexture(int y0, float v0, int y1, float v1, int y2, float v2, List<float> z01, List<float> z12, List<float> z02)
         {
