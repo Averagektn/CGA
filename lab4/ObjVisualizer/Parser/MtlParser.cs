@@ -1,6 +1,8 @@
-﻿using System.Drawing;
+﻿using ObjVisualizer.Data;
+using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace ObjVisualizer.Parser
 {
@@ -24,13 +26,13 @@ namespace ObjVisualizer.Parser
         private const string MAP_MRAO = "map_mrao";
         private const string NORM = "norm";
 
-        public byte[] GetMapKdBytes() => GetBitmapBytes(MAP_KD);
+        public ImageData GetMapKdBytes() => GetBitmapBytes(MAP_KD);
 
-        public byte[] GetMapMraoBytes() => GetBitmapBytes(MAP_MRAO);
+        public ImageData GetMapMraoBytes() => GetBitmapBytes(MAP_MRAO);
 
-        public byte[] GetNormBytes() => GetBitmapBytes(NORM);
+        public ImageData GetNormBytes() => GetBitmapBytes(NORM);
 
-        private byte[] GetBitmapBytes(string paramName)
+        private ImageData GetBitmapBytes(string paramName)
         {
             string line;
 
@@ -42,15 +44,49 @@ namespace ObjVisualizer.Parser
                 }
                 while (!line.Contains(paramName, StringComparison.InvariantCultureIgnoreCase) && line != string.Empty);
             }
-
             var fileName = line.Split(' ')[1];
             var fileExtension = Path.GetExtension(fileName);
             var bitmap = new Bitmap(_mtlDirectory + Path.DirectorySeparatorChar + fileName);
+           
+            PixelFormat pixelFormat = bitmap.PixelFormat;
+            Rectangle rect = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
+            byte[] imageBytes;
+            BitmapData bmpData = bitmap.LockBits(rect, ImageLockMode.ReadOnly, pixelFormat);
+            var stride = bmpData.Stride;
+            int dataSize = Math.Abs(stride) * bitmap.Height;
+            imageBytes = new byte[dataSize];
+            Marshal.Copy(bmpData.Scan0, imageBytes, 0, dataSize);
+            bitmap.UnlockBits(bmpData);
 
-            using var stream = new MemoryStream();
-            bitmap.Save(stream, _formatDictionary[fileExtension]);
-
-            return stream.ToArray();
+            var bitsPerPixel = GetBitsPerPixel(pixelFormat);
+            
+            return new ImageData(stride,(short)bitsPerPixel,bitmap.Width, bitmap.Height, imageBytes);
         }
+
+        static int GetBitsPerPixel(PixelFormat pixelFormat)
+        {
+            if (pixelFormat == PixelFormat.Format24bppRgb)
+            {
+                return 24;
+            }
+            else if (pixelFormat == PixelFormat.Format32bppArgb || pixelFormat == PixelFormat.Format32bppRgb)
+            {
+                return 32;
+            }
+            else if (pixelFormat == PixelFormat.Format8bppIndexed)
+            {
+                return 8;
+            }
+
+            return 0;
+        }
+
+        //static byte[] GetImageBytes(Bitmap bitmap)
+        //{
+            
+
+
+        //    return imageBytes;
+        //}
     }
 }

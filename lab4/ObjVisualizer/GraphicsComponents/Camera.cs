@@ -15,6 +15,8 @@ namespace ObjVisualizer.GraphicsComponents
         public float CameraZeta { get; set; } = (float)Math.PI/2;
         public float CameraPhi { get; set; } = (float)Math.PI/2;
 
+
+
         public void ChangeCameraAspect(int Width, int Height)
         {
             Aspect = (float)Width / Height;

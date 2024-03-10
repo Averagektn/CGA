@@ -14,6 +14,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Objects\Box\Box.mtl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Objects\Box\Box.obj">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Objects\Box\texture.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Objects\Cube.obj">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -29,10 +38,40 @@
     <None Update="Objects\manstar.obj">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Objects\Mimic\Mimic Chest\Mimic_albedo.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Objects\Mimic\Mimic Chest\Mimic_emissive.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Objects\Mimic\Mimic Chest\Mimic_mrao.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Objects\Mimic\Mimic Chest\Mimic_normal.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Objects\Mimic\Mimic Chest\model.mtl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Objects\Mimic\Mimic Chest\model.obj">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Objects\Monkey.obj">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Objects\Shovel Knight\shovel_diffuse.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Objects\Shovel Knight\shovel_low.mtl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Objects\Shovel Knight\shovel_low.obj">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Objects\Shovel Knight\shovel_mrao.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Objects\Shovel Knight\shovel_normal_map.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Objects\Shrek.obj">
