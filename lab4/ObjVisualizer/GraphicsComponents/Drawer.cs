@@ -391,29 +391,6 @@ namespace ObjVisualizer.GraphicsComponents
             }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Vector3 GetNewTextel(float tx, float ty, ImageData image)
-        {
-            var fx = tx - float.Floor(tx);
-            var fy = ty - float.Floor(ty);
-            tx = float.Floor(tx);
-            ty = float.Floor(ty);
-
-            var TLIndex = (int)(ty * image.Stride + tx * image.ColorSize / 8);
-            var TRIndex = (int)(ty * image.Stride + (tx + 1) * image.ColorSize / 8);
-            var BLIndex = (int)((ty + 1) * image.Stride + tx * image.ColorSize / 8);
-            var BRIndex = (int)((ty + 1) * image.Stride + (tx + 1) * image.ColorSize / 8);
-            var TL = new Vector3(image.MapData[TLIndex], image.MapData[TLIndex + 1], image.MapData[TLIndex + 2]);
-            var TR = new Vector3(image.MapData[TRIndex], image.MapData[TRIndex + 1], image.MapData[TRIndex + 2]);
-            var BL = new Vector3(image.MapData[BLIndex], image.MapData[BLIndex + 1], image.MapData[BLIndex + 2]);
-            var BR = new Vector3(image.MapData[BRIndex], image.MapData[BRIndex + 1], image.MapData[BRIndex + 2]);
-
-
-            var CT = fx * TR + (1 - fx) * TL;
-            var CB = fx * BR + (1 - fx) * BL;
-
-            return fy * CB + (1 - fy) * CT;
-        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Vector3 GetNewTextel(float tx, float ty, ImageData image)
