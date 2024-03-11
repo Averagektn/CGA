@@ -401,8 +401,4 @@ FodyWeavers.xsd
 *.png
 *.obj
 *.bmp
-/lab3/ObjVisualizer/Shovel Knight/shovel_diffuse.png
-/lab3/ObjVisualizer/Shovel Knight/shovel_low.mtl
-/lab3/ObjVisualizer/Shovel Knight/shovel_low.obj
-/lab3/ObjVisualizer/Shovel Knight/shovel_mrao.png
-/lab3/ObjVisualizer/Shovel Knight/shovel_normal_map.png
+Objects
