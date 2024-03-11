@@ -108,7 +108,6 @@ namespace ObjVisualizer
                         MainScene.Camera.Radius * (float)Math.Sin(MainScene.Camera.CameraPhi) * (float)Math.Sin(MainScene.Camera.CameraZeta));
             MainScene.Light.Add(new PointLight(0, 10, 10, 0.8f, false,false, new Vector3(0f,1f,0f),new Vector3(1f, 1f, 1f)));
             MainScene.Light.Add(new PointLight(0, 10, 10, 0.8f, false,false, new Vector3(0f,0f,1f),new Vector3(1f, 1f, 1f)));
-            //MainScene.Light.Add(new PointLight(0, 4, -10, 0.8f, false,false, new Vector3(1f,1f,1f),new Vector3(1f, 1f, 1f)));
             MainScene.ViewMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewMatrix(MainScene.Camera));
             MainScene.ProjectionMatrix = Matrix4x4.Transpose(MatrixOperator.GetProjectionMatrix(MainScene.Camera));
             MainScene.ViewPortMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewPortMatrix(WindowWidth, WindowHeight));

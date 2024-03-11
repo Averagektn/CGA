@@ -404,6 +404,9 @@ namespace ObjVisualizer.GraphicsComponents
             var TRIndex = (int)(ty * image.Stride + (tx + 1) * image.ColorSize / 8);
             var BLIndex = (int)((ty + 1) * image.Stride + tx * image.ColorSize / 8);
             var BRIndex = (int)((ty + 1) * image.Stride + (tx + 1) * image.ColorSize / 8);
+            if (TLIndex >= image.MapData.Length || TRIndex >= image.MapData.Length || BLIndex >= image.MapData.Length || BRIndex >= image.MapData.Length 
+                || TLIndex <0|| TRIndex < 0|| BLIndex < 0|| BRIndex < 0)
+                return new(0, 0, 0);
             var TL = new Vector3(image.MapData[TLIndex], image.MapData[TLIndex+1], image.MapData[TLIndex+2]);
             var TR = new Vector3(image.MapData[TRIndex], image.MapData[TRIndex+1], image.MapData[TRIndex+2]);
             var BL = new Vector3(image.MapData[BLIndex], image.MapData[BLIndex+1], image.MapData[BLIndex+2]);
