@@ -15,7 +15,7 @@ namespace ObjVisualizer.GraphicsComponents
 
         private static Scene? Instance;
 
-        public PointLight Light;
+        public List<PointLight> Light;
 
         public bool Ambient { get => _ambient; set { _ambient = value; } }
         public bool Specular { get => _specular; set { _specular = value; } }
@@ -25,6 +25,8 @@ namespace ObjVisualizer.GraphicsComponents
 
         public LabaStage Stage;
 
+        public GraphicsObject GraphicsObjects;
+        
         public enum LabaStage
         {
             Laba1,
@@ -48,7 +50,7 @@ namespace ObjVisualizer.GraphicsComponents
             ScaleMatrix = Matrix4x4.Transpose(Matrix4x4.Identity);
             MoveMatrix = Matrix4x4.Transpose(Matrix4x4.Identity);
             Camera = new Camera(Vector3.Zero, Vector3.Zero, Vector3.Zero, 0, 0, 0, 0);
-            Light = new PointLight();
+            Light = new List<PointLight>();
             ChangeStatus = true;
         }
 
@@ -61,13 +63,15 @@ namespace ObjVisualizer.GraphicsComponents
 
         public void UpdateViewMatix()
         {
-            ViewMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewMatrix(Camera));
+            ViewMatrix = Matrix4x4.CreateLookAt(Camera.Eye, Camera.Target, Camera.Up);
+            //ViewMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewMatrix(Camera));
         }
 
         public void SceneResize(int NewWindowWidth, int NewWindowHeight)
         {
             Camera.ChangeCameraAspect(NewWindowWidth, NewWindowHeight);
             ViewPortMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewPortMatrix(NewWindowWidth, NewWindowHeight));
+
         }
 
         public Vector4 GetTransformedVertex(Vector4 Vertex, out bool isOut)
