@@ -15,7 +15,7 @@ namespace ObjVisualizer.GraphicsComponents
 
         private static Scene? Instance;
 
-        public PointLight Light;
+        public List<PointLight> Light;
 
         public bool Ambient { get => _ambient; set { _ambient = value; } }
         public bool Specular { get => _specular; set { _specular = value; } }
@@ -23,16 +23,9 @@ namespace ObjVisualizer.GraphicsComponents
         private bool _ambient;
         private bool _specular;
 
-        public LabaStage Stage;
+        public Stage Stage;
 
-        public enum LabaStage
-        {
-            Laba1,
-            Laba2,
-            Laba3,
-            Laba4,
-            Laba5
-        }
+        public GraphicsObject GraphicsObjects = null!;
 
         private Matrix4x4 RotateMatrix;
         private Matrix4x4 ScaleMatrix;
@@ -48,7 +41,7 @@ namespace ObjVisualizer.GraphicsComponents
             ScaleMatrix = Matrix4x4.Transpose(Matrix4x4.Identity);
             MoveMatrix = Matrix4x4.Transpose(Matrix4x4.Identity);
             Camera = new Camera(Vector3.Zero, Vector3.Zero, Vector3.Zero, 0, 0, 0, 0);
-            Light = new PointLight();
+            Light = [];
             ChangeStatus = true;
         }
 
@@ -61,13 +54,15 @@ namespace ObjVisualizer.GraphicsComponents
 
         public void UpdateViewMatix()
         {
-            ViewMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewMatrix(Camera));
+            ViewMatrix = Matrix4x4.CreateLookAt(Camera.Eye, Camera.Target, Camera.Up);
+            //ViewMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewMatrix(Camera));
         }
 
         public void SceneResize(int NewWindowWidth, int NewWindowHeight)
         {
             Camera.ChangeCameraAspect(NewWindowWidth, NewWindowHeight);
             ViewPortMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewPortMatrix(NewWindowWidth, NewWindowHeight));
+
         }
 
         public Vector4 GetTransformedVertex(Vector4 Vertex, out bool isOut)
@@ -133,5 +128,14 @@ namespace ObjVisualizer.GraphicsComponents
         //    ScaleMatrix = MatrixOperator.Scale(new Vector3(1 + deltaScale, 1 + deltaScale, 1 + deltaScale));
         //    UpdateModelMatrix();
         //}
+    }
+
+    public enum Stage
+    {
+        Stage1,
+        Stage2,
+        Stage3,
+        Stage4,
+        Stage5
     }
 }

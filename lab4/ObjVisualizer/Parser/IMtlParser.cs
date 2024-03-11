@@ -1,9 +1,11 @@
-﻿namespace ObjVisualizer.Parser
+﻿using ObjVisualizer.Data;
+
+namespace ObjVisualizer.Parser
 {
     internal interface IMtlParser
     {
-        byte[] GetMapKdBytes();
-        byte[] GetMapMraoBytes();
-        byte[] GetNormBytes();
+        ImageData GetMapKdBytes();
+        ImageData GetMapMraoBytes();
+        ImageData GetNormBytes();
     }
 }
