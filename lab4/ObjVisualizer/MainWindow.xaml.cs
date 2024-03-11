@@ -33,7 +33,7 @@ namespace ObjVisualizer
         private int _windowScale = 2;
 
         private readonly IMtlParser MtlParserKnight = new MtlParser("Objects\\Shovel Knight\\shovel_low.mtl");
-       
+
 
         public MainWindow()
         {
@@ -92,8 +92,8 @@ namespace ObjVisualizer
             Content = grid;
 
             MainScene = Scene.GetScene();
-            MainScene.GraphicsObjects = new GraphicsObject( MtlParserKnight.GetMapKdBytes(), MtlParserKnight.GetMapMraoBytes(), MtlParserKnight.GetNormBytes()) ;
-           
+            MainScene.GraphicsObjects = new GraphicsObject(MtlParserKnight.GetMapKdBytes(), MtlParserKnight.GetMapMraoBytes(), MtlParserKnight.GetNormBytes());
+
             MainScene.Stage = Scene.LabaStage.Laba1;
 
             MainScene.Camera = new Camera(new Vector3(0, 0f, -1f), new Vector3(0, 1, 0), new Vector3(0, 0, 0),
@@ -106,8 +106,8 @@ namespace ObjVisualizer
                         MainScene.Camera.Radius * (float)Math.Cos(MainScene.Camera.CameraPhi) * (float)Math.Sin(MainScene.Camera.CameraZeta),
                         MainScene.Camera.Radius * (float)Math.Cos(MainScene.Camera.CameraZeta),
                         MainScene.Camera.Radius * (float)Math.Sin(MainScene.Camera.CameraPhi) * (float)Math.Sin(MainScene.Camera.CameraZeta));
-            MainScene.Light.Add(new PointLight(0, 10, 10, 0.8f, false,false, new Vector3(0f,1f,0f),new Vector3(1f, 1f, 1f)));
-            MainScene.Light.Add(new PointLight(0, 10, 10, 0.8f, false,false, new Vector3(0f,0f,1f),new Vector3(1f, 1f, 1f)));
+            MainScene.Light.Add(new PointLight(0, 10, 10, 0.8f, false,false, new Vector3(1f,0.8f,0f),new Vector3(1f, 1f, 1f)));
+            MainScene.Light.Add(new PointLight(0, 10, 10, 0f, false,false, new Vector3(0f,0f,1f),new Vector3(1f, 1f, 1f)));
             //MainScene.Light.Add(new PointLight(0, 4, -10, 0.8f, false,false, new Vector3(1f,1f,1f),new Vector3(1f, 1f, 1f)));
             MainScene.ViewMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewMatrix(MainScene.Camera));
             MainScene.ProjectionMatrix = Matrix4x4.Transpose(MatrixOperator.GetProjectionMatrix(MainScene.Camera));
@@ -210,7 +210,7 @@ namespace ObjVisualizer
             MainScene.SceneResize(WindowWidth, WindowHeight);
         }
 
-        private async void Frame()
+        private async Task Frame()
         {
             var Vertexes = Reader.Vertices.ToList();
             var Normales = Reader.VertexNormals.ToList();
@@ -233,8 +233,8 @@ namespace ObjVisualizer
                        MainScene.Camera.Radius * (float)Math.Sin(MainScene.Camera.CameraPhi) *
                        (float)Math.Sin(MainScene.Camera.CameraZeta));
 
-                MainScene.Light[0] = new PointLight(0, 10, 20, 0.8f, MainScene.Ambient, MainScene.Specular, new Vector3(0f, 0f, 1f), new Vector3(1f, 1f, 1f));
-                MainScene.Light[1] = new PointLight(20, 10, 20, 0.5f, MainScene.Ambient, MainScene.Specular, new Vector3(0f, 1f, 0f), new Vector3(1f, 1f, 1f));
+                MainScene.Light[0] = new PointLight(MainScene.Camera.Eye.X, MainScene.Camera.Eye.Y, MainScene.Camera.Eye.Z,0.8f, MainScene.Ambient, MainScene.Specular, new Vector3(1f, 0.8f, 0f), new Vector3(1f, 0.8f, 0));
+                MainScene.Light[1] = new PointLight(20, 10, 20, 0.0f, MainScene.Ambient, MainScene.Specular, new Vector3(0f, 1f, 0f), new Vector3(1f, 1f, 1f));
 
 
                 MainScene.UpdateViewMatix();
@@ -357,7 +357,11 @@ namespace ObjVisualizer
                                         .Select(i => Textels[FaceTextels[i] - 1])
                                         .ToList();
 
-                                    drawer.Rasterize(triangleVertexes, originalVertexes, triangleTextels, MainScene);
+                                    var triangleView= Enumerable.Range(0, FaceVertexes.Count)
+                                        .Select(i => MainScene.GetViewVertex(Vertexes[FaceVertexes[i] - 1]))
+                                        .ToList();
+
+                                    drawer.Rasterize(triangleVertexes, originalVertexes, triangleTextels,triangleView, MainScene);
 
 
                                 }

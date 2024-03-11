@@ -44,6 +44,8 @@ namespace ObjVisualizer.Parser
                 }
                 while (!line.Contains(paramName, StringComparison.InvariantCultureIgnoreCase) && line != string.Empty);
             }
+            if (line == string.Empty)
+                return null;
             var fileName = line.Split(' ')[1];
             var fileExtension = Path.GetExtension(fileName);
             var bitmap = new Bitmap(_mtlDirectory + Path.DirectorySeparatorChar + fileName);

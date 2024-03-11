@@ -14,7 +14,7 @@ namespace ObjVisualizer.GraphicsComponents
 
         public readonly float _specularIntencity = 1f;
 
-        public readonly float _diffuceIntencity = .5f;
+        public readonly float _diffuceIntencity = 1f;
 
 
         private readonly bool ambient = ambient;
@@ -45,7 +45,7 @@ namespace ObjVisualizer.GraphicsComponents
         public Vector3 CalculateLightWithSpecular(Vector3 point, Vector3 normal, Vector3 eye)
         {
             Vector3 l = new Vector3(X, Y, Z) - point;
-            int s = 10;
+            float s = 0.5f;
             Vector3 lightResult = new(0, 0, 0);
             if (ambient)
                 lightResult = LightColorAmbient * _ambientIntencity;
