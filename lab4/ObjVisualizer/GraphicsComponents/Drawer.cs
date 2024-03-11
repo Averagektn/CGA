@@ -376,7 +376,7 @@ namespace ObjVisualizer.GraphicsComponents
                                     for (int i = 0; i < scene.Light.Count; i++)
                                         lightResult += scene.Light[i].CalculateLightWithMaps(vertex, normal, scene.Camera.Eye, scene.GraphicsObjects.MraoMap.MapData[textureByteMrao + 0]);
                                     //Vector3 lightResult = new(1f, 1f, 1f);
-                                    *pixelPtr++ = (byte)(newColor.X * (lightResult.X > 1 ? 1 : lightResult.X));
+                                    *pixelPtr++ = (byte)(newColor.X * (lightResult.X > 1.0 ? 1 : lightResult.X));
                                     *pixelPtr++ = (byte)(newColor.Y * (lightResult.Y > 1 ? 1 : lightResult.Y));
                                     *pixelPtr = (byte)(newColor.Z * (lightResult.Z > 1 ? 1 : lightResult.Z));
                                 }
