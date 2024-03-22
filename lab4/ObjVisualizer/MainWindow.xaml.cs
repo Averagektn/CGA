@@ -32,12 +32,12 @@ namespace ObjVisualizer
 
         private int _windowScale = 2;
 
-        private readonly IMtlParser MtlParserKnight = new MtlParser("Objects\\Box\\Box.mtl");
+        private readonly IMtlParser MtlParserKnight = new MtlParser("Objects\\Shovel Knight\\shovel_low.mtl");
 
 
         public MainWindow()
         {
-            Reader = ObjReader.GetObjReader("Objects\\Box\\Box.obj");
+            Reader = ObjReader.GetObjReader("Objects\\Shovel Knight\\shovel_low.obj");
             
             
 
@@ -68,7 +68,7 @@ namespace ObjVisualizer
 
 
             };
-            RenderOptions.SetBitmapScalingMode(Image, BitmapScalingMode.HighQuality);
+            //RenderOptions.SetBitmapScalingMode(Image, BitmapScalingMode.HighQuality);
 
             TextBlock = new TextBlock
             {
@@ -253,8 +253,8 @@ namespace ObjVisualizer
                         }
                     }
 
-                    //Parallel.ForEach(Reader.Faces, face =>
-                    foreach (var face in Reader.Faces)
+                    Parallel.ForEach(Reader.Faces, face =>
+                    //foreach (var face in Reader.Faces)
                     {
                         var FaceVertexes = face.VertexIds.ToList();
                         var FaceNormales = face.NormalIds.ToList();
@@ -358,18 +358,18 @@ namespace ObjVisualizer
                                         .Select(i => Textels[FaceTextels[i] - 1])
                                         .ToList();
 
-                                    var triangleView= Enumerable.Range(0, FaceVertexes.Count)
+                                    var triangleView = Enumerable.Range(0, FaceVertexes.Count)
                                         .Select(i => MainScene.GetViewVertex(Vertexes[FaceVertexes[i] - 1]))
                                         .ToList();
 
-                                    drawer.Rasterize(triangleVertexes, originalVertexes, triangleTextels,triangleView, MainScene);
+                                    drawer.Rasterize(triangleVertexes, originalVertexes, triangleTextels, triangleView, MainScene);
 
 
                                 }
                             }
                         }
-                        //});
-                    }
+                    });
+                //}
 
                 }
 

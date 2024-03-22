@@ -94,7 +94,7 @@ namespace ObjVisualizer.GraphicsComponents
         {
             Vertex = Vector4.Transform(Vertex, ViewMatrix);
              Vertex = Vector4.Transform(Vertex, ProjectionMatrix);
-            var W = Vertex.W;
+            var W = Vertex.Z;
             var temp = Vector4.Divide(Vertex, Vertex.W);
             return new Vector4(temp.X, temp.Y, temp.Z, W);
 
