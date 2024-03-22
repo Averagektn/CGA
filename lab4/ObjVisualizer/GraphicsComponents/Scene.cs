@@ -92,9 +92,14 @@ namespace ObjVisualizer.GraphicsComponents
         }
         public Vector4 GetViewVertex(Vector4 Vertex)
         {
-            return Vector4.Transform(Vertex, ViewMatrix);
+            Vertex = Vector4.Transform(Vertex, ViewMatrix);
+             Vertex = Vector4.Transform(Vertex, ProjectionMatrix);
+            var W = Vertex.W;
+            var temp = Vector4.Divide(Vertex, Vertex.W);
+            return new Vector4(temp.X, temp.Y, temp.Z, W);
+
         }
-      
+
         public Vector4 GetTransformedVertex(Vector4 Vertex)
         {
             Vertex = Vector4.Transform(Vertex, ViewMatrix);
