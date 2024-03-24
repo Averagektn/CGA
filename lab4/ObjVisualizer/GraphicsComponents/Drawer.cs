@@ -10,20 +10,21 @@ namespace ObjVisualizer.GraphicsComponents
 {
     internal class Drawer(int width, int height, IntPtr drawBuffer, int stride)
     {
+        private readonly float[,] ZBuffer = new float[height,width];
         private readonly Random Random = new();
-        private readonly List<List<double>> ZBuffer = Enumerable.Range(0, height)
-            .Select(_ => Enumerable.Repeat(double.MaxValue, width).ToList())
-            .ToList();
-        private readonly List<List<Object>> SpincLocker = Enumerable.Range(0, height)
-           .Select(_ => Enumerable.Repeat(new Object(), width).ToList())
-           .ToList();
-        private bool[,] SpincLockerBoolean = new bool[height, width];
+        //private  List<List<double>> ZBuffer = Enumerable.Range(0, height)
+        //    .Select(_ => Enumerable.Repeat(double.MaxValue, width).ToList())
+        //    .ToList();
+        //private readonly List<List<Object>> SpincLocker = Enumerable.Range(0, height)
+        //   .Select(_ => Enumerable.Repeat(new Object(), width).ToList())
+        //   .ToList();
+        //private bool[,] SpincLockerBoolean = new bool[height, width];
 
-        private readonly IntPtr Buffer = drawBuffer;
+        private IntPtr Buffer = drawBuffer;
 
         private readonly int _width = width;
         private readonly int _height = height;
-        private readonly int _stride = stride;
+        private int _stride = stride;
 
         public unsafe void Rasterize(IList<Vector4> vertices, Color color)
         {
@@ -41,14 +42,11 @@ namespace ObjVisualizer.GraphicsComponents
                     new(),
                     new(),
                     new(),
-                    new(),
-                    new(),
-                    new(),
                     new()), color);
             }
         }
 
-        public unsafe void Rasterize(IList<Vector4> vertices, IList<Vector3> normales, IList<Vector4> originalVertexes, Scene scene)
+        public unsafe void Rasterize(IList<Vector4> vertices, IList<Vector3> normales, IList<Vector4> viewVerteces, Scene scene)
         {
             for (int i = 1; i < vertices.Count - 1; i++)
             {
@@ -59,19 +57,16 @@ namespace ObjVisualizer.GraphicsComponents
                     new(normales[0].X, normales[0].Y, normales[0].Z),
                     new(normales[i].X, normales[i].Y, normales[i].Z),
                     new(normales[i + 1].X, normales[i + 1].Y, normales[i + 1].Z),
-                    new(originalVertexes[0].X, originalVertexes[0].Y, originalVertexes[0].Z),
-                    new(originalVertexes[i].X, originalVertexes[i].Y, originalVertexes[i].Z),
-                    new(originalVertexes[i + 1].X, originalVertexes[i + 1].Y, originalVertexes[i + 1].Z),
                     new(),
                     new(),
                     new(),
-                    new(),
-                    new(),
-                    new()), scene);
+                    viewVerteces[0],
+                    viewVerteces[i],
+                    viewVerteces[i+1]), scene);
             }
         }
 
-        public unsafe void Rasterize(IList<Vector4> vertices, IList<Vector4> originalVertexes, IList<Vector3> textels, IList<Vector4> view, Scene scene)
+        public unsafe void Rasterize(IList<Vector4> vertices, IList<Vector3> textels, IList<Vector4> view, Scene scene, bool optional = true)
         {
             for (int i = 1; i < vertices.Count - 1; i++)
             {
@@ -82,9 +77,6 @@ namespace ObjVisualizer.GraphicsComponents
                     new(),
                     new(),
                     new(),
-                    new(originalVertexes[0].X, originalVertexes[0].Y, originalVertexes[0].Z),
-                    new(originalVertexes[i].X, originalVertexes[i].Y, originalVertexes[i].Z),
-                    new(originalVertexes[i + 1].X, originalVertexes[i + 1].Y, originalVertexes[i + 1].Z),
                     new(textels[0].X, textels[0].Y),
                     new(textels[i].X, textels[i].Y),
                     new(textels[i + 1].X, textels[i + 1].Y),
@@ -165,7 +157,7 @@ namespace ObjVisualizer.GraphicsComponents
 
 
                 (var x02, var x012) = TraingleInterpolation(A, triangle.A.X, B, triangle.B.X, C, triangle.C.X);
-                (var z02, var z012) = TraingleInterpolation(A, triangle.A.Z, B, triangle.B.Z, C, triangle.C.Z);
+                (var z02, var z012) = TraingleInterpolation(A, 1/triangle.A.Z, B, 1/triangle.B.Z, C, 1/triangle.C.Z);
 
                 var m = (int)Math.Floor(x012.Count / 2.0f);
                 List<float> x_left;
@@ -210,9 +202,9 @@ namespace ObjVisualizer.GraphicsComponents
                             if (x < 0 || x >= _width)
                                 continue;
                             var z = zscan[x - xl];
-                            if (z < ZBuffer[y][x])
+                            if (z > ZBuffer[y,x])
                             {
-                                ZBuffer[y][x] = z;
+                                ZBuffer[y,x] = z;
                                 byte* pixelPtr = data + y * _stride + x * 3;
                                 *pixelPtr++ = color.B;
                                 *pixelPtr++ = color.G;
@@ -239,26 +231,23 @@ namespace ObjVisualizer.GraphicsComponents
                 if (triangle.B.Y < triangle.A.Y)
                 {
                     (triangle.B, triangle.A) = (triangle.A, triangle.B);
-                    (triangle.RealB, triangle.RealA) = (triangle.RealA, triangle.RealB);
-                    (triangle.TextelB, triangle.TextelA) = (triangle.TextelA, triangle.TextelB);
                     (triangle.ViewB, triangle.ViewA) = (triangle.ViewA, triangle.ViewB);
+                    (triangle.TextelB, triangle.TextelA) = (triangle.TextelA, triangle.TextelB);
 
                 }
                 if (triangle.C.Y < triangle.A.Y)
                 {
                     (triangle.C, triangle.A) = (triangle.A, triangle.C);
-                    (triangle.RealC, triangle.RealA) = (triangle.RealA, triangle.RealC);
-                    (triangle.TextelC, triangle.TextelA) = (triangle.TextelA, triangle.TextelC);
                     (triangle.ViewC, triangle.ViewA) = (triangle.ViewA, triangle.ViewC);
+                    (triangle.TextelC, triangle.TextelA) = (triangle.TextelA, triangle.TextelC);
 
 
                 }
                 if (triangle.C.Y < triangle.B.Y)
                 {
                     (triangle.B, triangle.C) = (triangle.C, triangle.B);
-                    (triangle.RealB, triangle.RealC) = (triangle.RealC, triangle.RealB);
-                    (triangle.TextelB, triangle.TextelC) = (triangle.TextelC, triangle.TextelB);
                     (triangle.ViewB, triangle.ViewC) = (triangle.ViewC, triangle.ViewB);
+                    (triangle.TextelB, triangle.TextelC) = (triangle.TextelC, triangle.TextelB);
 
 
                 }
@@ -270,13 +259,13 @@ namespace ObjVisualizer.GraphicsComponents
                 float ZInvB = 1 / triangle.ViewB.W;
                 float ZInvC = 1 / triangle.ViewC.W;
 
-                (var z02, var z012) = TraingleInterpolation(YA, triangle.A.Z, YB, triangle.B.Z, YC, triangle.C.Z);
+             
                 (var x02, var x012) = TraingleInterpolation(YA, triangle.A.X, YB, triangle.B.X, YC, triangle.C.X);
 
-                (var rx02, var rx012) = TraingleInterpolation(YA, triangle.RealA.X, YB, triangle.RealB.X, YC, triangle.RealC.X);
-                (var ry02, var ry012) = TraingleInterpolation(YA, triangle.RealA.Y, YB, triangle.RealB.Y, YC, triangle.RealC.Y);
+                (var rx02, var rx012) = TraingleInterpolation(YA, triangle.ViewA.X, YB, triangle.ViewB.X, YC, triangle.ViewC.X);
+                (var ry02, var ry012) = TraingleInterpolation(YA, triangle.ViewA.Y, YB, triangle.ViewB.Y, YC, triangle.ViewC.Y);
 
-                (var rz02, var rz012) = TraingleInterpolation(YA, triangle.RealA.Z, YB, triangle.RealB.Z, YC, triangle.RealC.Z);
+                (var rz02, var rz012) = TraingleInterpolation(YA, triangle.ViewA.Z, YB, triangle.ViewB.Z, YC, triangle.ViewC.Z);
 
                 (var vz02, var vz012) = TraingleInterpolation(YA, ZInvA, YB, ZInvB, YC, ZInvC);
 
@@ -287,8 +276,6 @@ namespace ObjVisualizer.GraphicsComponents
                 var m = (int)float.Floor(x012.Count / 2.0f);
                 List<float> x_left;
                 List<float> x_right;
-                List<float> z_left;
-                List<float> z_right;
                 List<float> u_left;
                 List<float> u_right;
                 List<float> v_left;
@@ -303,7 +290,6 @@ namespace ObjVisualizer.GraphicsComponents
                 if ((int)float.Round(x02[m]) <= (int)float.Round(x012[m]))
                 {
                     (x_left, x_right) = (x02, x012);
-                    (z_left, z_right) = (z02, z012);
 
                     (u_left, u_right) = (u02, u012);
                     (v_left, v_right) = (v02, v012);
@@ -319,7 +305,6 @@ namespace ObjVisualizer.GraphicsComponents
                 else
                 {
                     (x_left, x_right) = (x012, x02);
-                    (z_left, z_right) = (z012, z02);
 
                     (u_left, u_right) = (u012, u02);
                     (v_left, v_right) = (v012, v02);
@@ -349,8 +334,6 @@ namespace ObjVisualizer.GraphicsComponents
                     {
                         var xl = (int)float.Round(x_left[index]);
                         var xr = (int)float.Round(x_right[index]);
-                        var zl = z_left[index];
-                        var zr = z_right[index];
 
 
                         (var rxl, var rxr) = (rx_left[index], rx_right[index]);
@@ -364,7 +347,7 @@ namespace ObjVisualizer.GraphicsComponents
                         if (xl == xr)
                             continue;
 
-                        float ku, kv, kvz, krx, kry, krz, kz;
+                        float ku, kv, kvz, krx, kry, krz;
                         if (xl == xr)
                         {
                             ku = ul;
@@ -373,7 +356,6 @@ namespace ObjVisualizer.GraphicsComponents
                             krx = rxl;
                             kry = ryl;
                             krz = rzl;
-                            kz = zl;
                         }
                         else
                         {
@@ -383,7 +365,6 @@ namespace ObjVisualizer.GraphicsComponents
                             krx = (rxl - rxr) / (xl - xr);
                             kry = (ryl - ryr) / (xl - xr);
                             krz = (rzl - rzr) / (xl - xr);
-                            kz = (zl - zr) / (xl - xr);
                         }
 
 
@@ -391,21 +372,21 @@ namespace ObjVisualizer.GraphicsComponents
                         {
                             if (x < 0 || x >= _width)
                                 continue;
-                            var z = (zl + kz * (x - xl));
+                            var z = (rzl + krz * (x - xl));
                             var vz = (vzl + kvz * (x - xl));
 
-                            if (z < ZBuffer[y][x])
+                            if (vz > ZBuffer[y,x])
                             {
 
-                                ZBuffer[y][x] = z;
+                                ZBuffer[y,x] = vz;
                                 byte* pixelPtr = data + y * _stride + x * 3;
                                 var vertex = new Vector3(rxl + krx * (x - xl), ryl + kry * (x - xl), rzl + krz * (x - xl));
                                 var tx = float.Abs(((ul + ku * (x - xl)) / vz) * scene.GraphicsObjects.KdMap.Width) % scene.GraphicsObjects.KdMap.Width;
                                 var ty = float.Abs((1 - (vl + kv * (x - xl)) / vz) * scene.GraphicsObjects.KdMap.Height) % scene.GraphicsObjects.KdMap.Height;
                                 //int textureByteKd = (int)((1 - vscan[x - xl]) * scene.GraphicsObjects.KdMap.Height) * scene.GraphicsObjects.KdMap.Stride + (int)(uscan[x - xl] * scene.GraphicsObjects.KdMap.Width) * scene.GraphicsObjects.KdMap.ColorSize / 8;
                                 Vector3 newColor = GetNewTextel(tx, ty, scene.GraphicsObjects.KdMap);
-                                ////Vector3 newColor = new(scene.GraphicsObjects.KdMap.MapData[textureByteKd], scene.GraphicsObjects.KdMap.MapData[textureByteKd + 1], scene.GraphicsObjects.KdMap.MapData[textureByteKd + 2]);
-                                int textureByteNorm = (int)((1 - (vl + kv * (x - xl))/vz) * scene.GraphicsObjects.NormMap.Height) * scene.GraphicsObjects.NormMap.Stride + (int)((ul + ku * (x - xl)) / vz * scene.GraphicsObjects.NormMap.Width) * scene.GraphicsObjects.NormMap.ColorSize / 8;
+                                //Vector3 newColor = new(scene.GraphicsObjects.KdMap.MapData[textureByteKd], scene.GraphicsObjects.KdMap.MapData[textureByteKd + 1], scene.GraphicsObjects.KdMap.MapData[textureByteKd + 2]);
+                                int textureByteNorm = (int)((1 - (vl + kv * (x - xl)) / vz) * scene.GraphicsObjects.NormMap.Height) * scene.GraphicsObjects.NormMap.Stride + (int)((ul + ku * (x - xl)) / vz * scene.GraphicsObjects.NormMap.Width) * scene.GraphicsObjects.NormMap.ColorSize / 8;
                                 int textureByteMrao = (int)((1 - (vl + kv * (x - xl)) / vz) * scene.GraphicsObjects.MraoMap.Height) * scene.GraphicsObjects.MraoMap.Stride + (int)((ul + ku * (x - xl)) / vz * scene.GraphicsObjects.MraoMap.Width) * scene.GraphicsObjects.MraoMap.ColorSize / 8;
                                 Vector3 normal = new Vector3((scene.GraphicsObjects.NormMap.MapData[textureByteNorm + 2] / 255.0f) * 2 - 1, (scene.GraphicsObjects.NormMap.MapData[textureByteNorm + 1] / 255.0f) * 2 - 1, (scene.GraphicsObjects.NormMap.MapData[textureByteNorm + 0] / 255.0f) * 2 - 1);
                                 Vector3 lightResult = new(0, 0, 0);
@@ -423,37 +404,9 @@ namespace ObjVisualizer.GraphicsComponents
             }
         }
 
-        public Vector2 GetTextureCoords(Vector2[] texture, float alpha, float beta, float gamma)
-        {
+      
 
-            var tem1 = Vector2.Multiply(alpha, texture[0]);
-            var tem2 = Vector2.Multiply(beta, texture[1]);
-            var tem3 = Vector2.Multiply(gamma, texture[2]);
-            return Vector2.Add(tem1, Vector2.Add(tem2, tem3));
-
-        }
-        public List<float> calculateBarycentricCoordinates(Triangle triangle, float x, float y)
-        {
-            var barycentricCoordinates = new List<float>(3);
-
-            float x1 = triangle.A.X;
-            float y1 = triangle.A.Y;
-            float x2 = triangle.B.X;
-            float y2 = triangle.B.Y;
-            float x3 = triangle.C.X;
-            float y3 = triangle.C.Y;
-
-            float denominator = ((y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3));
-
-            barycentricCoordinates.Add(((y2 - y3) * (x - x3) + (x3 - x2) * (y - y3)) / denominator);
-            barycentricCoordinates.Add(((y3 - y1) * (x - x3) + (x1 - x3) * (y - y3)) / denominator);
-            barycentricCoordinates.Add(1 - barycentricCoordinates[0] - barycentricCoordinates[1]);
-
-            return barycentricCoordinates;
-        }
-
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Vector3 GetNewTextel(float tx, float ty, ImageData image)
         {
             var fx = tx - float.Floor(tx);
@@ -481,7 +434,7 @@ namespace ObjVisualizer.GraphicsComponents
             return fy * CB + (1 - fy) * CT;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Color CalculateColor(Vector3 point, Vector3 normal, Scene scene, Color baseColor)
         {
             var light = new Vector3(0, 0, 0);
@@ -494,7 +447,7 @@ namespace ObjVisualizer.GraphicsComponents
             return color;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         private (List<float>, List<float>) TraingleInterpolation(int y0, float v0, int y1, float v1, int y2, float v2)
         {
             var v01 = Interpolate(y0, v0, y1, v1);
@@ -527,35 +480,35 @@ namespace ObjVisualizer.GraphicsComponents
                 {
                     (triangle.B, triangle.A) = (triangle.A, triangle.B);
                     (triangle.NormalB, triangle.NormalA) = (triangle.NormalA, triangle.NormalB);
-                    (triangle.RealB, triangle.RealA) = (triangle.RealA, triangle.RealB);
+                    (triangle.ViewB, triangle.ViewA) = (triangle.ViewA, triangle.ViewB);
                 }
                 if (triangle.C.Y < triangle.A.Y)
                 {
                     (triangle.C, triangle.A) = (triangle.A, triangle.C);
                     (triangle.NormalC, triangle.NormalA) = (triangle.NormalA, triangle.NormalC);
-                    (triangle.RealC, triangle.RealA) = (triangle.RealA, triangle.RealC);
+                    (triangle.ViewC, triangle.ViewA) = (triangle.ViewA, triangle.ViewC);
                 }
                 if (triangle.C.Y < triangle.B.Y)
                 {
                     (triangle.B, triangle.C) = (triangle.C, triangle.B);
                     (triangle.NormalB, triangle.NormalC) = (triangle.NormalC, triangle.NormalB);
-                    (triangle.RealB, triangle.RealC) = (triangle.RealC, triangle.RealB);
+                    (triangle.ViewB, triangle.ViewC) = (triangle.ViewC, triangle.ViewB);
                 }
                 int YA = (int)float.Round(triangle.A.Y, 0);
                 int YB = (int)float.Round(triangle.B.Y, 0);
                 int YC = (int)float.Round(triangle.C.Y, 0);
 
                 (var x02, var x012) = TraingleInterpolation(YA, triangle.A.X, YB, triangle.B.X, YC, triangle.C.X);
-                (var z02, var z012) = TraingleInterpolation(YA, triangle.A.Z, YB, triangle.B.Z, YC, triangle.C.Z);
+                (var z02, var z012) = TraingleInterpolation(YA, 1/triangle.ViewA.Z, YB, 1/triangle.ViewB.Z, YC, 1/triangle.ViewC.Z);
 
 
                 (var nx02, var nx012) = TraingleInterpolation(YA, triangle.NormalA.X, YB, triangle.NormalB.X, YC, triangle.NormalC.X);
                 (var ny02, var ny012) = TraingleInterpolation(YA, triangle.NormalA.Y, YB, triangle.NormalB.Y, YC, triangle.NormalC.Y);
                 (var nz02, var nz012) = TraingleInterpolation(YA, triangle.NormalA.Z, YB, triangle.NormalB.Z, YC, triangle.NormalC.Z);
 
-                (var rx02, var rx012) = TraingleInterpolation(YA, triangle.RealA.X, YB, triangle.RealB.X, YC, triangle.RealC.X);
-                (var ry02, var ry012) = TraingleInterpolation(YA, triangle.RealA.Y, YB, triangle.RealB.Y, YC, triangle.RealC.Y);
-                (var rz02, var rz012) = TraingleInterpolation(YA, triangle.RealA.Z, YB, triangle.RealB.Z, YC, triangle.RealC.Z);
+                (var rx02, var rx012) = TraingleInterpolation(YA, triangle.ViewA.X, YB, triangle.ViewB.X, YC, triangle.ViewC.X);
+                (var ry02, var ry012) = TraingleInterpolation(YA, triangle.ViewA.Y, YB, triangle.ViewB.Y, YC, triangle.ViewC.Y);
+                (var rz02, var rz012) = TraingleInterpolation(YA, triangle.ViewA.Z, YB, triangle.ViewB.Z, YC, triangle.ViewC.Z);
 
                 var m = (int)float.Floor(x012.Count / 2.0f);
                 List<float> x_left;
@@ -641,11 +594,11 @@ namespace ObjVisualizer.GraphicsComponents
                             var z = zscan[x - xl];
 
 
-                            lock (SpincLocker[y][x])
-                            {
-                                if (z < ZBuffer[y][x])
+                            //lock (SpincLocker[y][x])
+                            //{
+                                if (z > ZBuffer[y,x])
                                 {
-                                    ZBuffer[y][x] = z;
+                                    ZBuffer[y,x] = z;
                                     byte* pixelPtr = data + y * _stride + x * 3;
                                     var vertex = new Vector3(rxscan[x - xl], ryscan[x - xl], rzscan[x - xl]);
                                     var normal = new Vector3(nxscan[x - xl], nyscan[x - xl], nzscan[x - xl]);
@@ -654,7 +607,7 @@ namespace ObjVisualizer.GraphicsComponents
                                     *pixelPtr++ = color.G;
                                     *pixelPtr = color.R;
                                 }
-                            }
+                            //}
 
 
                         }

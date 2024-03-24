@@ -21,6 +21,7 @@ namespace ObjVisualizer
         private readonly Image Image;
         private readonly DispatcherTimer Timer;
         private readonly TextBlock TextBlock;
+        private Drawer drawer;
 
         private readonly IObjReader Reader;
 
@@ -32,7 +33,7 @@ namespace ObjVisualizer
 
         private int _windowScale = 2;
 
-        private readonly IMtlParser MtlParserKnight = new MtlParser("Objects\\Shovel Knight\\shovel_low.mtl");
+        private readonly IMtlParser _mtlParser = new MtlParser("Objects\\Shovel Knight\\shovel_low.mtl");
 
 
         public MainWindow()
@@ -66,7 +67,7 @@ namespace ObjVisualizer
 
 
             };
-            //RenderOptions.SetBitmapScalingMode(Image, BitmapScalingMode.HighQuality);
+            RenderOptions.SetBitmapScalingMode(Image, BitmapScalingMode.HighQuality);
 
             TextBlock = new TextBlock
             {
@@ -110,7 +111,7 @@ namespace ObjVisualizer
             MainScene.ViewMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewMatrix(MainScene.Camera));
             MainScene.ProjectionMatrix = Matrix4x4.Transpose(MatrixOperator.GetProjectionMatrix(MainScene.Camera));
             MainScene.ViewPortMatrix = Matrix4x4.Transpose(MatrixOperator.GetViewPortMatrix(WindowWidth, WindowHeight));
-
+            drawer = new Drawer(WindowWidth, WindowHeight,new nint(),0);
             Frame();
         }
 
@@ -204,7 +205,6 @@ namespace ObjVisualizer
 
             WindowWidth = (int)Width * _windowScale;
             WindowHeight = (int)Height * _windowScale;
-
             MainScene.SceneResize(WindowWidth, WindowHeight);
         }
 
@@ -216,6 +216,7 @@ namespace ObjVisualizer
 
             while (true)
             {
+              
                 var writableBitmap = new WriteableBitmap(WindowWidth, WindowHeight, 96, 96, PixelFormats.Bgr24, null);
                 var rect = new Int32Rect(0, 0, WindowWidth, WindowHeight);
 
@@ -231,13 +232,16 @@ namespace ObjVisualizer
                        MainScene.Camera.Radius * (float)Math.Sin(MainScene.Camera.CameraPhi) *
                        (float)Math.Sin(MainScene.Camera.CameraZeta));
 
-                MainScene.Light[0] = new PointLight(MainScene.Camera.Eye.X, MainScene.Camera.Eye.Y, MainScene.Camera.Eye.Z,0.5f, MainScene.Ambient, MainScene.Specular, new Vector3(0f, 0f, 1f), new Vector3(1f, 1f, 1));
+                MainScene.Light[0] = new PointLight(MainScene.Camera.Eye.X, MainScene.Camera.Eye.Y, MainScene.Camera.Eye.Z, 0.5f, MainScene.Ambient, MainScene.Specular, new Vector3(0f, 0f, 1f), new Vector3(1f, 1f, 1));
                 MainScene.Light[1] = new PointLight(20, 10, 20, 0.5f, MainScene.Ambient, MainScene.Specular, new Vector3(0f, 1f, 0f), new Vector3(1f, 1f, 1f));
 
 
                 MainScene.UpdateViewMatix();
 
                 var drawer = new Drawer(WindowWidth, WindowHeight, buffer, stride);
+
+
+
 
                 unsafe
                 {
@@ -335,7 +339,7 @@ namespace ObjVisualizer
                                         .Select(i => Normales[FaceNormales[i] - 1])
                                         .ToList();
                                     var originalVertexes = Enumerable.Range(0, FaceVertexes.Count)
-                                       .Select(i => Vertexes[FaceVertexes[i] - 1])
+                                       .Select(i => MainScene.GetViewVertex(Vertexes[FaceVertexes[i] - 1]))
                                        .ToList();
                                     drawer.Rasterize(triangleVertexes, triangleNormales, originalVertexes, MainScene);
                                 }
@@ -360,14 +364,14 @@ namespace ObjVisualizer
                                         .Select(i => MainScene.GetViewVertex(Vertexes[FaceVertexes[i] - 1]))
                                         .ToList();
 
-                                    drawer.Rasterize(triangleVertexes, originalVertexes, triangleTextels, triangleView, MainScene);
+                                    drawer.Rasterize(triangleVertexes, triangleTextels, triangleView, MainScene, true);
 
 
                                 }
                             }
                         }
                     }));
-                //}
+                    //}
 
                 }
 
